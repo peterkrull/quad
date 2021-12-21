@@ -5,12 +5,12 @@ This git repository is a personal project of mine to make a well flying autonomo
 ## Goals of this project
 
 - [x] Design and assemble the hardware capable of flight
-- [] Decide the models (transfer functions) for the motor thrust
-- [] Accomplish fast and responsive pitch, roll, yaw-rate regulators
-- [] Estimate inertial and rotational position, velocity, and acceleration
-- [] Be able to hover in place and fly patterns using GPS and IMU data
-- [] Mission planning for doing missions defined by pre-determined routes
-- [] Intelligently land and take off with natural human interactions
+- [ ] Decide the models (transfer functions) for the motor thrust
+- [ ] Accomplish fast and responsive pitch, roll, yaw-rate regulators
+- [ ] Estimate inertial and rotational position, velocity, and acceleration
+- [ ] Be able to hover in place and fly patterns using GPS and IMU data
+- [ ] Mission planning for doing missions defined by pre-determined routes
+- [ ] Intelligently land and take off with natural human interactions
 
 ![](images/readme_frontimage.jpg)
 
