@@ -4,7 +4,7 @@
 
 ## Directory contents
 
-- **3dparts** - 3D models used in the project. All parts are designed in some version of FreeCAD, and both the source file, STEP file and .obj file will be available.
+- **3dparts** - 3D models used in the project as STEP and .obj files.
 - **docs** - Documentation and learning material used in the project.
 - **hardware** - Schematics, and PCB layouts as well as finished gerber files.
 - **images** - Photos used in readme and some documentation.
