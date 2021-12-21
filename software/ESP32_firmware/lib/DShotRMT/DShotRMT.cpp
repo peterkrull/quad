@@ -136,6 +136,7 @@ esp_err_t DShotRMT::sendPacket(uint16_t packet)
 	return writePacket({packet, 0}, false);
 }
 
+
 esp_err_t DShotRMT::setReversed(bool reversed)
 {
 	DSHOT_ERROR_CHECK(rmt_wait_tx_done(_rmtChannel, 1));
