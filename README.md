@@ -1,6 +1,6 @@
 # Project quad
 
-![](visuals/readme_frontimage.jpg)
+![](images/readme_frontimage.jpg)
 
 ## Directory contents
 
