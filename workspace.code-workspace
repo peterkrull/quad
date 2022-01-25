@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"name": "ESP32_flight_firmware",
+			"path": "software/ESP32_flight_firmware"
+		},
+		{
+			"name": "ESP32_ground_firmware",
+			"path": "software/ESP32_ground_firmware"
+		}
+	],
+	"settings": {}
+}
