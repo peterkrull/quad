@@ -58,7 +58,7 @@ struct quadcopter_motors{
   int32_t M2 = 0;
   int32_t M3 = 0;
   int32_t M4 = 0;
-} motors,governor;
+} motors;
 
 struct pryt{
   float thrust = 0;
@@ -70,7 +70,10 @@ struct pryt{
 struct motor {
   uint16_t speed = 0;
   DShotRMT dshot;
-  bool reversed = false;
+  bool reversed;
+  bool rmt_init = false;
+  uint8_t rmt_channel;
+  uint8_t gpio_pin;
 } M1, M2, M3, M4;
 
 // GPS / POSITIONING SETUP
@@ -79,19 +82,25 @@ TinyGPSPlus gps;
 // CONTROLLERS
 PID pid_pitch, pid_roll, pid_yaw, pid_thrust;
 
-// TODO make single method (if possible) for motor initialization tasks
-
-void initMotor(void *pvParameters) {
+void motorGov(void *pvParameters) {
   motor M = *((motor*)pvParameters);
-  M.dshot.init(true);
-  M.dshot.setReversed(M.reversed);
-  const TickType_t xFrequency = 200;
-  TickType_t xLastWakeTime = xTaskGetTickCount();
-  while (true) {
-    vTaskDelayUntil(&xLastWakeTime, int(1000 / xFrequency));
-    uint16_t speed = ((motor*)pvParameters)->speed;
-    M.dshot.sendThrottle(speed);
-  }
+  vTaskDelay(1 / portTICK_PERIOD_MS);
+  M.rmt_init = !M.dshot.install(gpio_num_t(M.gpio_pin), rmt_channel_t(M.rmt_channel));
+  ((motor*)pvParameters)->rmt_init = M.rmt_init;
+  if (M.rmt_init){
+    M.dshot.init(true);
+    M.dshot.setReversed(M.reversed);
+    const TickType_t xFrequency = 200;
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    while (true) {
+      vTaskDelayUntil(&xLastWakeTime, int(1000 / xFrequency));
+      uint16_t speed = ((motor*)pvParameters)->speed;
+      if (M.speed < 48) M.speed = 48; if (M.speed > 2047) M.speed = 2047;
+      M.dshot.sendThrottle(speed);
+      Serial.print("Setting : ");
+      Serial.println(speed);
+    }
+  } vTaskDelete( NULL );
 }
 
 void vKeepConnection(void *pvParameters) {
@@ -175,7 +184,7 @@ void vCommander(void *pvParameters) {
 void vTinyGPSpull(void *pvParameters){
   while(true){
     vTaskDelay(10 / portTICK_PERIOD_MS);
-    uint32_t start_time = micros();
+    //uint32_t start_time = micros();
     while (Serial1.available() > 0){
       if (gps.encode(Serial1.read())){
         digitalWrite(LED_RED,gps.location.isValid());
@@ -257,10 +266,10 @@ void GPSSerialInit() {
   Serial1.begin(57600, SERIAL_8N1, GPS_RX, GPS_TX); // start Serial1 coms at 57,600 baud.
 }
 
-low_pass thrust_lp = low_pass(0.4);
-low_pass pitch_lp = low_pass(0.4);
-low_pass roll_lp = low_pass(0.4);
-low_pass yaw_lp = low_pass(0.4);
+low_pass thrust_lp = low_pass(0.1);
+low_pass pitch_lp = low_pass(0.1);
+low_pass roll_lp = low_pass(0.1);
+low_pass yaw_lp = low_pass(0.1);
 
 void vController(void *pvParameters) {
   const TickType_t xFrequency = 100;
@@ -279,8 +288,10 @@ void vController(void *pvParameters) {
     // motors.M3 = pryt_sp.thrust - con_pitch - con_roll - con_yaw;
     // motors.M4 = pryt_sp.thrust + con_pitch + con_roll - con_yaw;
 
-    motors.M1 = 300 - con_pitch;
-    motors.M3 = 300 - con_pitch;
+    motors.M1 = 720 - con_pitch;
+    motors.M2 = 720 + con_pitch;
+    motors.M3 = 720 - con_pitch;
+    motors.M4 = 720 + con_pitch;
 
   }
 }
@@ -288,24 +299,33 @@ void vController(void *pvParameters) {
 void vMotorGovernor(void *pvParameters) {
 
   M1.speed = 100;
-  M2.speed = 0;
+  M2.speed = 100;
   M3.speed = 100;
-  M4.speed = 0;
+  M4.speed = 100;
 
-  M3.reversed = true;
-  M4.reversed = true;
+  M1.reversed = true;
+  M2.reversed = true;
+  M3.reversed = false;
+  M4.reversed = false;
 
-  bool rmt_init = !(
-  M1.dshot.install(gpio_num_t(M1_pin), rmt_channel_t(0)) &
-  M2.dshot.install(gpio_num_t(M2_pin), rmt_channel_t(1)) &
-  M3.dshot.install(gpio_num_t(M3_pin), rmt_channel_t(2)) &
-  M4.dshot.install(gpio_num_t(M4_pin), rmt_channel_t(3)) );
+  M1.gpio_pin = M1_pin;
+  M2.gpio_pin = M2_pin;
+  M3.gpio_pin = M3_pin;
+  M4.gpio_pin = M4_pin;
 
-  if (rmt_init) {
-    xTaskCreate(initMotor, "initM1", 5000, &M1, 1, NULL);
-    xTaskCreate(initMotor, "initM2", 5000, &M2, 1, NULL);
-    xTaskCreate(initMotor, "initM3", 5000, &M3, 1, NULL);
-    xTaskCreate(initMotor, "initM4", 5000, &M4, 1, NULL);
+  M1.rmt_channel = 0;
+  M2.rmt_channel = 1;
+  M3.rmt_channel = 2;
+  M4.rmt_channel = 3;
+
+  xTaskCreate(motorGov, "motorGovM1", 5000, &M1, 1, NULL);
+  xTaskCreate(motorGov, "motorGovM2", 5000, &M2, 1, NULL);
+  xTaskCreate(motorGov, "motorGovM3", 5000, &M3, 1, NULL);
+  xTaskCreate(motorGov, "motorGovM4", 5000, &M4, 1, NULL);
+
+  vTaskDelay(10/portTICK_PERIOD_MS);
+
+  if (M1.rmt_init && M2.rmt_init && M3.rmt_init && M4.rmt_init) {
 
     const TickType_t xFrequency = 200;
     TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -313,26 +333,12 @@ void vMotorGovernor(void *pvParameters) {
     {
       vTaskDelayUntil(&xLastWakeTime, int(1000 / xFrequency));
 
-      if (true){ // If all is good
-
-        if (motors.M1 < 48) motors.M1 = 48;
-        if (motors.M2 < 48) motors.M2 = 48;
-        if (motors.M3 < 48) motors.M3 = 48;
-        if (motors.M4 < 48) motors.M4 = 48;
-
-        if (motors.M1 > 2047) motors.M1 = 2047;
-        if (motors.M2 > 2047) motors.M2 = 2047;
-        if (motors.M3 > 2047) motors.M3 = 2047;
-        if (motors.M4 > 2047) motors.M4 = 2047;
-
+      if (true){ // If all is good, set motor speeds
         M1.speed = motors.M1;
         M2.speed = motors.M2;
         M3.speed = motors.M3;
         M4.speed = motors.M4;
 
-        //Serial.print(M1.speed);Serial.print("\t: "); Serial.print(M2.speed);Serial.print("\t: "); Serial.print(M3.speed);Serial.print("\t: "); Serial.println(M4.speed);
-      } else if (true){
-        // Secondary failure mode,
       } else { // catastropic failsafe, cut all motors
         M1.speed = 0;
         M2.speed = 0;
@@ -387,7 +393,7 @@ void setup() {
 
     // initialize pryt controllers
     pid_thrust = PID(1,0,0);
-    pid_pitch = PID(200,100,55);
+    pid_pitch = PID(200,0,50);
     pid_roll = PID(200,300,50);
     pid_yaw = PID(1,0,0);
     
