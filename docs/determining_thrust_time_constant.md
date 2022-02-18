@@ -1,6 +1,6 @@
 # Determining the time constant of a step in thrust
 
-For this test, it is assumed that the thrust come-up of the motor + esc comeup and be approximated as a first order model. Additionally, it is expected that the time constant is the same for any step-increase in thrust, but this will be verifed during the test.
+For this test, it is assumed that the thrust come-up of the motor + esc can be approximated as a first order model. Additionally, it is expected that the time constant is the same for any step-increase in thrust, just like the ideal motor model, but this will be verifed during the test.
 
 ---
 
