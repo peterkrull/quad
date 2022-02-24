@@ -80,7 +80,7 @@ struct motor {
 TinyGPSPlus gps;
 
 // CONTROLLERS
-PID pid_pitch, pid_roll, pid_yaw, pid_thrust;
+PID pid_pitch, pid_roll, pid_yaw, pid_thrust, pid_vpitch, pid_vroll, pid_vyaw, pid_vthrust;
 
 void motorGov(void *pvParameters) {
   motor M = *((motor*)pvParameters);
@@ -97,8 +97,6 @@ void motorGov(void *pvParameters) {
       uint16_t speed = ((motor*)pvParameters)->speed;
       if (M.speed < 48) M.speed = 48; if (M.speed > 2047) M.speed = 2047;
       M.dshot.sendThrottle(speed);
-      Serial.print("Setting : ");
-      Serial.println(speed);
     }
   } vTaskDelete( NULL );
 }
@@ -278,8 +276,9 @@ void vController(void *pvParameters) {
   {
     vTaskDelayUntil(&xLastWakeTime, int(1000 / xFrequency));
 
-
     double con_pitch = pid_pitch.update(ypr[2]-pitch_lp.update(pryt_sp.pitch));
+    double con_vpitch = pid_vpitch.update(gyro.x-con_pitch);
+
     // double con_roll = pid_roll.update(ypr[1]-pryt_sp.roll);
     // double con_yaw = pid_yaw.update(ypr[0]-pryt_sp.yaw);
 
@@ -288,20 +287,22 @@ void vController(void *pvParameters) {
     // motors.M3 = pryt_sp.thrust - con_pitch - con_roll - con_yaw;
     // motors.M4 = pryt_sp.thrust + con_pitch + con_roll - con_yaw;
 
-    motors.M1 = 720 - con_pitch;
-    motors.M2 = 720 + con_pitch;
-    motors.M3 = 720 - con_pitch;
-    motors.M4 = 720 + con_pitch;
+    // motors.M1 = 720 - con_vpitch;
+    // motors.M2 = 720 + con_vpitch;
+    // motors.M3 = 720 - con_vpitch;
+    // motors.M4 = 720 + con_vpitch;
+
+    Serial.println(720 - con_vpitch);
 
   }
 }
 
 void vMotorGovernor(void *pvParameters) {
 
-  M1.speed = 100;
-  M2.speed = 100;
-  M3.speed = 100;
-  M4.speed = 100;
+  M1.speed = 48;
+  M2.speed = 48;
+  M3.speed = 48;
+  M4.speed = 48;
 
   M1.reversed = true;
   M2.reversed = true;
@@ -378,7 +379,7 @@ void setup() {
     mpu.CalibrateAccel(6);
     mpu.CalibrateGyro(6);
     mpu.setDMPEnabled(true);
-    mpu.setDLPFMode(MPU6050_DLPF_BW_98);
+    mpu.setDLPFMode(MPU6050_DLPF_BW_256);
     packetSize = mpu.dmpGetFIFOPacketSize();
   } Serial.println("devStatus received");
 
@@ -393,9 +394,14 @@ void setup() {
 
     // initialize pryt controllers
     pid_thrust = PID(1,0,0);
-    pid_pitch = PID(200,0,50);
+    pid_pitch = PID(8,0,8*0.15);
     pid_roll = PID(200,300,50);
     pid_yaw = PID(1,0,0);
+
+    // pid_vthrust = PID(1,0,0);
+    pid_vpitch = PID(5,0,5*0.04);
+    // pid_vroll = PID(200,300,50);
+    // pid_vyaw = PID(1,0,0);
     
     xTaskCreate(vKeepConnection, "KeepConnection", 3000, NULL, 4, NULL);
     xTaskCreate(vCommander, "Commander", 2000, NULL, 3, NULL);
