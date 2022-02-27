@@ -14,6 +14,10 @@ A [firmware](/software/ESP32_thrust_step_firmware/src/main.cpp) has been written
 
 ## Results
 
-Three tests were performed, where the motor went from a DShot command of 100 to [500](/tests/0500_thrust_response.csv), to [1200](/tests/1200_thrust_response.csv), and finally to [1500](/tests/1500_thrust_response.csv). These are analyzed using a [Matlab script](/software/misc_tools/plotting_thrust_steps.m), where the step is set to happen at $t = 0$ as well as have steady-state gain of around $1$. An exponential function of the form $G(t)=1-e^{-\frac{t}{\tau}}$ is fitted to the data, where $\tau$ denotes the time constant of the first order system. It is determined for all three tests, that $\tau = 50 \text{ ms}$ is a good fit, striking a middle ground for any deviance there might be between them.
+Three tests were performed, where the motor went from a DShot command of 100 to [500](/tests/0500_thrust_response.csv), to [1200](/tests/1200_thrust_response.csv), and finally to [1500](/tests/1500_thrust_response.csv). These are analyzed using a [Matlab script](/software/misc_tools/plotting_thrust_steps.m), where the step is set to happen at $t = 0$ as well as have steady-state gain of around $1$. An exponential function of the form $F(t)=1-e^{-\frac{t}{\tau}}$ is fitted to the data, where $\tau$ denotes the time constant of the first order system. It is determined for all three tests, that $\tau = 50 \text{ ms}$ is a good fit, striking a middle ground for any deviance there might be between them.
 
 ![](../images/thrust_step_plot.jpg)
+
+Using the same model in the laplace domain, we obtain:
+
+$$F(s) = \frac{G}{50\cdot 10^{-3}s + 1}$$
