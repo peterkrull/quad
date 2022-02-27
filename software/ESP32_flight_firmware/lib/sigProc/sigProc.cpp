@@ -21,10 +21,16 @@ void low_pass::restart(double value){
     output_val = value;
 }
 
-PID::PID(double Kp, double Ki, double Kd, float tau){
-    xKp = Kp;
-    xKi = Ki;
-    xKd = Kd;
+PID::PID(double Kp, double Ki, double Kd, float tau, bool ideal){
+    if (ideal){
+        xKp = Kp;
+        xKi = Ki*Kp;
+        xKd = Kd*Kp;  
+    } else {
+        xKp = Kp;
+        xKi = Ki;
+        xKd = Kd;     
+    }
     if (tau > 0){
         lp = low_pass(tau);
         dlp = true;
@@ -66,3 +72,7 @@ double PID::update(double error,uint32_t dtime){
     return outsig;
 }
 
+void PID::restart(){
+    integral = 0;
+    prev_time = micros();
+}
