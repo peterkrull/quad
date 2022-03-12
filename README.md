@@ -4,13 +4,22 @@ This git repository is a personal project of mine to make a well flying autonomo
 
 ## Goals of this project
 
-- [x] Design and assemble the hardware capable of flight
-- [ ] Decide the models (transfer functions) for the motor thrust
+- [x] Design and assemble the initial hardware capable of flight
+  - [ ] Produce a smaller PCB mainly with SMD components
+- [X] Decide the models (transfer functions) for the motor thrust
+- [X] Decide equations of motion for pitch/roll with real-world values
+  - [ ] Calculate moments of inertia
+- [ ] Decide equations of motion for yaw with real-world values
 - [ ] Accomplish fast and responsive pitch, roll, yaw-rate regulators
 - [ ] Estimate inertial and rotational position, velocity, and acceleration
 - [ ] Be able to hover in place and fly patterns using GPS and IMU data
 - [ ] Mission planning for doing missions defined by pre-determined routes
-- [ ] Intelligently land and take off with natural human interactions
+- [ ] Land and take off with little human interaction
+
+## Primary topics
+- [Design philosophy and 3D models](/README.md)
+- [Modelling of drone](/docs/modelling_of_drone.md)
+- [Autonomous drone regulation](docs/autonomous_drones.md)
 
 ![](images/readme_frontimage.jpg)
 

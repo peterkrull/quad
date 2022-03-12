@@ -10,7 +10,7 @@ The first critical element of quadcopter dynamics is the motor, propeller and mo
 
 $$F(s) = \frac{G}{\tau s+1} \left[\frac{\text{N}}{\text{dshot}}\right]$$
 
-Where $G$ is the steady-state relationship between input dshot command and thrust in newton around the operating point corresponding to a hover. We also have $\tau$ being the time constant of the first order system. The measurements resulted in the following transfer function
+Where $G$ is the steady-state relationship between input dshot command and thrust in newton around the operating point corresponding to a hover. We also have $\tau$ being the time constant of the first order system. The measurements resulted in the following transfer function:
 
 $$F(s) = \frac{4.436\cdot10^{-3}}{50\cdot10^{-3}s+1}$$
 
@@ -22,4 +22,10 @@ In [this document](/docs/equations_of_motion_pitch.md) the equation of motion fo
 
 $$G(s)= \frac{2D}{Js+B} \left[\frac{\omega}{\text{N}}\right]$$
 
-Where $D$ is the distance from the between two propellers, $J$ is the moment of inertial of the drone around the given axis, and B is the air resistance. Here, D is the only easily measureable constant. The moment of inertia can be determined by modelling the entire drone is CAD software, approximating using point masses and simple shapes, or by doing some velocity step tests using known PID, values and fitting simulation data to measured data by only tweaking $J$.
+Where $D$ is the distance from the between two propellers, $J$ is the moment of inertial of the drone around the given axis, and $B$ is the air resistance. Here, $D$ is the only easily measureable constant. 
+
+The moment of inertia is determined by applying a constant torque around the axis, and measuring the change in velocity over time. A constant torque can be accomplished using a known mass $M$ hanging by gravity $g$ from a string wound around a cylinder with radius $r$ giving : $\tau_t = M \cdot g \cdot r$. The moment of inertia $J$ can then be found by fitting the measurement to the following model:
+
+$$\omega(s) = \frac{Mgr}{Js}$$
+
+Then $J$ can be found
