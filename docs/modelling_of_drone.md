@@ -28,4 +28,8 @@ The moment of inertia is determined by applying a constant torque around the axi
 
 $$\omega(s) = \frac{Mgr}{Js}$$
 
-Then $J$ can be found
+The value of $J$ for the pitch axis was found during the test described in [this document](/docs/determining_moment_of_inertia.md) to have a value of $1.2\cdot 10^{-3} \text{kg}/\text{m}^2$. A dampening constant $B$ was also found during the test, though this also included friction from the test setup, so the air resistance is approximated as half of this, resulting in the following transfer function for pitch:
+
+$$G(s)= \frac{170\cdot 10^{-3}}{1.2\cdot 10^{-3}s+200\cdot 10^{-6}}$$
+
+The moment of inertia for roll will not be explicitly measured, but it assumed to be $\approx 10$% lower due to the orientation of the battery.

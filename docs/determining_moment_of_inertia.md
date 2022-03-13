@@ -8,13 +8,13 @@ A [3D-printed part](/3dparts/droneframe_v1/pitch_bearing_pivot_wide.obj) was des
 
 ![](/images/inertia_torquer.png)
 
-For the test, a camera was mounted on a tripod recording in 4K with a fast shutter speed to prevent motion blur. Then, the drone was held at an angle to raise the roll of tape up high, and then let go. This is functionally a step in gravity and thus torque, that allows us to observe the change over time. The video is processed in [Physlets tracker](https://physlets.org/tracker/) where two points are tracked on each opposing propeller. This gives us two sets of coordinates, where it is possible to determine the angle between them.
+For the test, a camera was mounted on a tripod recording in 4K with a fast shutter speed to prevent motion blur. Then, the drone was held at an angle to raise the roll of tape up high, and then let go. This is functionally a step in gravity and thus torque, that allows us to observe the change in angle over time. The video is processed in [Physlets tracker](https://physlets.org/tracker/) where two points are tracked on each opposing propeller. This gives us two sets of coordinates ([1](/tests/inertia_left_point.csv) and [2](/tests/inertia_right_point.csv)), where it is possible to determine the angle between them.
 
 ![](/images/inertia_test_setup.png)
 
 Finally, data processing!
 
-A [matlab script](/software/misc_tools/roll_moment_inertia.m) has been developed to calculate the angle and angular velocity based on the video, as well as determine the moment of inertia that best fits the following transfer function, where some dampening $B$ is expected:
+A [matlab script](/software/misc_tools/roll_moment_inertia.m) has been developed to calculate the angle using $\texttt{atan2}$, and angular velocity based on the timstamps from the video, as well as determine the moment of inertia that best fits the following transfer function, where some dampening $B$ is expected:
 
 $$\omega(s) = \frac{Mgr}{Js} \approx \frac{Mgr}{Js + B}$$
 
