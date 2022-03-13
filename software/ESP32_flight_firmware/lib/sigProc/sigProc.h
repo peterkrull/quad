@@ -18,6 +18,7 @@ class PID{
         double update(double error);
         double update(double error,uint32_t dtime);
         void setOutputLimit(double min, double max);
+        void setAntiwindup(bool set);
         void restart();
     private:
         double xKp, xKi, xKd;
@@ -25,6 +26,7 @@ class PID{
         double outlimMin = NULL;
         low_pass lp = low_pass(0);
         bool dlp;
+        bool antiwindup = false;
         uint32_t prev_time;
         double prev_error = 0;
         double differential = 0;

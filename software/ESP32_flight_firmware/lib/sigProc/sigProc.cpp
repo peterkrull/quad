@@ -63,8 +63,10 @@ double PID::update(double error,uint32_t dtime){
     }
     
     if (xKi){ // integral
-        integral += (xKi*error*dtime/1000000);
-        outsig += integral;
+        if (limiter(outsig, outlimMin, outlimMax) == outsig || !antiwindup){
+            integral += (xKi*error*dtime/1000000);
+            outsig += integral;
+        }
     }
 
     prev_error = error;
@@ -75,6 +77,10 @@ double PID::update(double error,uint32_t dtime){
 void PID::setOutputLimit(double min, double max){
     outlimMin = min;
     outlimMax = max;
+}
+
+void PID::setAntiwindup(bool set){
+    antiwindup = set;
 }
 
 void PID::restart(){
