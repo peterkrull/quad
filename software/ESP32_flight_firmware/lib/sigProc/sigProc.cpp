@@ -69,10 +69,21 @@ double PID::update(double error,uint32_t dtime){
 
     prev_error = error;
 
-    return outsig;
+    return limiter(outsig, outlimMin, outlimMax);
+}
+
+void PID::setOutputLimit(double min, double max){
+    outlimMin = min;
+    outlimMax = max;
 }
 
 void PID::restart(){
     integral = 0;
     prev_time = micros();
+}
+
+double limiter(double in, double min, double max){
+    if ( in > max && max != NULL) return max;
+    else if ( in < min && max != NULL) return min;
+    else return in;
 }

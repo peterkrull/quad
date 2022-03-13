@@ -17,9 +17,12 @@ class PID{
         PID(double Kp = 0 , double Ki = 0 , double Kd = 0 , float tau = 0, bool ideal = false);
         double update(double error);
         double update(double error,uint32_t dtime);
+        void setOutputLimit(double min, double max);
         void restart();
     private:
         double xKp, xKi, xKd;
+        double outlimMax = NULL;
+        double outlimMin = NULL;
         low_pass lp = low_pass(0);
         bool dlp;
         uint32_t prev_time;
@@ -27,3 +30,5 @@ class PID{
         double differential = 0;
         double integral = 0;
 };
+
+double limiter(double in, double min, double max);
