@@ -6,8 +6,8 @@ This git repository is a personal project of mine to make a well flying autonomo
 
 - [x] Design and assemble the initial hardware capable of flight
   - [ ] Produce a smaller PCB mainly with SMD components
-- [X] Decide the models (transfer functions) for the motor thrust
-- [X] Decide equations of motion for pitch/roll with real-world values
+- [x] Decide the models (transfer functions) for the motor thrust
+- [x] Decide equations of motion for pitch/roll with real-world values
   - [ ] Calculate moments of inertia
 - [ ] Decide equations of motion for yaw with real-world values
 - [ ] Accomplish fast and responsive pitch, roll, yaw-rate regulators
@@ -30,6 +30,7 @@ This git repository is a personal project of mine to make a well flying autonomo
 - **hardware** - Schematics, and PCB layouts as well as finished gerber files.
 - **images** - Photos used in readme and some documentation.
 - **software** - Software related to the project, including simulations, firmware, etc.
+- **tests** - Results from test conducted during this project
 
 ## Disclaimer
 
