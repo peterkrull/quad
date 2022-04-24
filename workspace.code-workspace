@@ -10,7 +10,25 @@
 		{
 			"name": "ESP32_ground_firmware",
 			"path": "software/ESP32_ground_firmware"
+		},
+		{
+			"name": "ESP32_motor_test",
+			"path": "software/ESP32_motor_test"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"files.associations": {
+			"cmath": "cpp",
+			"functional": "cpp",
+			"memory": "cpp",
+			"sstream": "cpp",
+			"list": "cpp",
+			"string": "cpp",
+			"limits": "cpp",
+			"bit": "cpp",
+			"compare": "cpp",
+			"cstddef": "cpp",
+			"new": "cpp"
+		}
+	}
 }
