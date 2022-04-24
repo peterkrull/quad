@@ -15,11 +15,13 @@ This git repository is a personal project of mine to make a well flying autonomo
 - [ ] Be able to hover in place and fly patterns using GPS and IMU data
 - [ ] Mission planning for doing missions defined by pre-determined routes
 - [ ] Land and take off with little human interaction
+- [ ] Refactor software to to build a more modular framework
 
 ## Primary topics
 - [Design philosophy and 3D models](/README.md)
 - [Modelling of drone](/docs/modelling_of_drone.md)
 - [Autonomous drone regulation](docs/autonomous_drones.md)
+- [Design of main PCB](/hardware/README.md)
 
 ![](images/readme_frontimage.jpg)
 
