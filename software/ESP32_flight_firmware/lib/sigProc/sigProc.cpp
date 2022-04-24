@@ -54,12 +54,11 @@ double PID::update(double error,uint32_t dtime){
         outsig += xKp*error;
     }
 
-    if (xKd && dlp){ // differential with lp
-        differential = (xKd*1000000*(lp.update(error-prev_error)))/dtime;
-        outsig += differential;
-    } else if (xKd) { // differential
-        differential = (xKd*1000000*(error-prev_error))/dtime;
-        outsig += differential;
+    if (xKd) { // derivative
+        float delta = error-prev_error;
+        if (dlp) {delta = lp.update(delta);}
+        float derivative = (xKd*1000000*(delta))/dtime;
+        outsig += derivative;
     }
     
     if (xKi){ // integral
@@ -75,8 +74,19 @@ double PID::update(double error,uint32_t dtime){
 }
 
 void PID::setOutputLimit(double min, double max){
-    outlimMin = min;
-    outlimMax = max;
+
+    if (isOutlimMin) {
+        outlimMin = min;
+    }
+
+    if (isOutlimMax) {
+        outlimMax = max;
+    }
+}
+
+void PID::setOutputLimit(bool setMin,bool setMax){
+    isOutlimMin = setMin;
+    isOutlimMax = setMax;
 }
 
 void PID::setAntiwindup(bool set){
@@ -89,7 +99,7 @@ void PID::restart(){
 }
 
 double limiter(double in, double min, double max){
-    if ( in > max && max != NULL) return max;
-    else if ( in < min && max != NULL) return min;
+    if ( in > max) return max;
+    else if ( in < min) return min;
     else return in;
 }

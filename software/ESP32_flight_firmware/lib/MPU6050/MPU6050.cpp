@@ -3307,6 +3307,8 @@ void MPU6050_Base::CalibrateAccel(uint8_t Loops ) {
 	PID( 0x3B, kP, kI,  Loops);
 }
 
+#include <FreeRTOS.h>
+
 void MPU6050_Base::PID(uint8_t ReadAddress, float kP,float kI, uint8_t Loops){
 	uint8_t SaveAddress = (ReadAddress == 0x3B)?((getDeviceID() < 0x38 )? 0x06:0x77):0x13;
 
@@ -3354,7 +3356,8 @@ void MPU6050_Base::PID(uint8_t ReadAddress, float kP,float kI, uint8_t Loops){
 			}
 			if((eSum * ((ReadAddress == 0x3B)?.05: 1)) < 5) eSample++;	// Successfully found offsets prepare to  advance
 			if((eSum < 100) && (c > 10) && (eSample >= 10)) break;		// Advance to next Loop
-			delay(1);
+			//delay(1);
+			vTaskDelay(1/portTICK_PERIOD_MS);
 		}
 		Serial.write('.');
 		kP *= .75;
