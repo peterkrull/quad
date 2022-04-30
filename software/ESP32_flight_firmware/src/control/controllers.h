@@ -1,7 +1,10 @@
-#include "dataStructures.h"
-#include "configuration.h"
-#include "sigProc.h"
-#include "boards.h"
+#ifndef controllers_h
+#define controllers_h
+
+#include "../module/dataStructures.h"
+#include "../configuration.h"
+#include "../sigproc/sigProc.h"
+#include "../board/definitions.h"
 
 struct conStruct {
     #ifdef useThrustController
@@ -66,3 +69,5 @@ pryt stabilize(pryt setpoint, allMpu data,conStruct *cons, float hoverthrust){
 
     return output;
 }
+
+#endif

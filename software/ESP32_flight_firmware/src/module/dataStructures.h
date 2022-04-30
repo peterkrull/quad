@@ -1,22 +1,23 @@
-#include <Arduino.h>
-#include "DShotRMT.h"
-
 #ifndef dataStructures_h
 #define dataStructures_h
+
+#include <Arduino.h>
+#include "DShotRMT.h"
+#include "MPU6050_6Axis_MotionApps612.h"
 
 struct quadcopter_motors{
   int16_t M1 = 0;
   int16_t M2 = 0;
   int16_t M3 = 0;
   int16_t M4 = 0;
-} motors;
+};
 
 struct pryt{
   float thrust = 0;
   float pitch = 0;
   float roll = 0;
   float yaw = 0;
-} pryt_sp;
+};
 
 struct motor {
   uint16_t speed = 48;
@@ -27,7 +28,7 @@ struct motor {
   uint8_t gpio_pin;
   bool standby = true;
   bool ready = false;
-} M1, M2, M3, M4;
+};
 
 struct allMpu {
   bool dmpReady = false;  // set true if DMP init was successful
