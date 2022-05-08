@@ -6,10 +6,10 @@
 #include "MPU6050_6Axis_MotionApps612.h"
 
 struct quadcopter_motors{
-  int16_t M1 = 0;
-  int16_t M2 = 0;
-  int16_t M3 = 0;
-  int16_t M4 = 0;
+  uint16_t M1 = 0;
+  uint16_t M2 = 0;
+  uint16_t M3 = 0;
+  uint16_t M4 = 0;
 };
 
 struct pryt{

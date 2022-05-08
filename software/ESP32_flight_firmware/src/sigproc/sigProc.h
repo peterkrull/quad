@@ -17,27 +17,27 @@ class low_pass{
 
 class PID{
     public:
-        PID(double Kp = 0 , double Ki = 0 , double Kd = 0 , float tau = 0, bool ideal = false);
-        double update(double error);
-        double update(double error,uint32_t dtime);
-        void setOutputLimit(double min, double max);
-        void setOutputLimit(bool setMin,bool setMax);
+        PID(float Kp = 0 , float Ki = 0 , float Kd = 0 , float tau = 0, bool ideal = false);
+        float update(float error);
+        float update(float error,float dtime);
+        void setOutputLimit(float min, float max);
+        void setOutputLimEn(bool setMin,bool setMax);
         void setAntiwindup(bool set);
         void restart();
     private:
-        double xKp, xKi, xKd;
+        float xKp, xKi, xKd;
         bool isOutlimMin = false;
         bool isOutlimMax = false;
-        double outlimMin = 0;
-        double outlimMax = 0;
+        float outlimMin = 0;
+        float outlimMax = 0;
         low_pass lp = low_pass(0);
         bool dlp;
         bool antiwindup = false;
-        uint32_t prev_time;
-        double prev_error = 0;
-        double integral = 0;
+        float prev_time;
+        float prev_error = 0;
+        float integral = 0;
 };
 
-double limiter(double in, double min, double max);
+float limiter(float in, float min, float max);
 
 #endif

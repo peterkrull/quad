@@ -6,7 +6,7 @@
 
 #define IMPORT_EASY_KIT true
 
-#define HOVER_THRUST 730
+#define HOVER_THRUST 100
 
 #define RADIAN_DEGREES true
 
@@ -34,12 +34,10 @@
     #define LOW_BATTERY_LAND_VOLTAGE 12.5
 #endif
 
-#define UDP_TIMEOUT_MS 500
-
 // Motor directions
 #define REVERSE_MOTOR_M1 true
-#define REVERSE_MOTOR_M2 false
-#define REVERSE_MOTOR_M3 true
+#define REVERSE_MOTOR_M2 true
+#define REVERSE_MOTOR_M3 false
 #define REVERSE_MOTOR_M4 false
 
 // Serial communication
@@ -51,6 +49,8 @@
 #define MAX_ROLL_PITCH_ANGLE 30
 #define MAX_YAW_RATE 360
 
+#define MAX_MOTOR_DIFF 500
+
 // Positioning limits
 
 #define MAX_
@@ -61,7 +61,7 @@
 #define GPS_INVALID_MS 10000
 
 #define UDP_TIMEOUT_LAND true
-#define UDP_TIMEOUT_MS 500
+#define UDP_TIMEOUT_MS 200
 
 #define SANITY_ROLL_PITCH_ANGLE 50
 #define SANITY_YAW_RATE 720
@@ -91,6 +91,8 @@
 // ------------------------ //
 // controller configuration //
 // ------------------------ //
+
+#define usePitchController
 
 #define thrustInnerControllerType PID
 #define thrustInnerController thrustInnerControllerType(1,0,0)

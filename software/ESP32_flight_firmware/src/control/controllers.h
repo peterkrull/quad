@@ -65,6 +65,8 @@ pryt stabilize(pryt setpoint, allMpu data,conStruct *cons, float hoverthrust){
         #ifdef thrustInnerController
             output.thrust = cons->pid_vthrust.update(output.thrust - data.aaReal.z);
         #endif
+    #else
+        output.thrust = hoverthrust;
     #endif
 
     return output;

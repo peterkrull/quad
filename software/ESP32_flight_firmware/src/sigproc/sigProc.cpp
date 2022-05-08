@@ -21,7 +21,7 @@ void low_pass::restart(double value){
     output_val = value;
 }
 
-PID::PID(double Kp, double Ki, double Kd, float tau, bool ideal){
+PID::PID(float Kp, float Ki, float Kd, float tau, bool ideal){
     if (ideal){
         xKp = Kp;
         xKi = Ki*Kp;
@@ -39,15 +39,15 @@ PID::PID(double Kp, double Ki, double Kd, float tau, bool ideal){
     }
 }
 
-double PID::update(double error){
-    uint32_t xtime = micros();
+float PID::update(float error){
+    float xtime = micros()/1e6;
     double outsig = update(error,xtime-prev_time);
     prev_time = xtime;
 
     return outsig;
 }
 
-double PID::update(double error,uint32_t dtime){
+float PID::update(float error,float dtime){
     double outsig = 0;
 
     if (xKp){ // proportional
@@ -57,13 +57,13 @@ double PID::update(double error,uint32_t dtime){
     if (xKd) { // derivative
         float delta = error-prev_error;
         if (dlp) {delta = lp.update(delta);}
-        float derivative = (xKd*1000000*(delta))/dtime;
+        float derivative = (xKd*(delta))/dtime;
         outsig += derivative;
     }
     
     if (xKi){ // integral
         if (limiter(outsig, outlimMin, outlimMax) == outsig || !antiwindup){
-            integral += (xKi*error*dtime/1000000);
+            integral += (xKi*error*dtime);
             outsig += integral;
         }
     }
@@ -73,7 +73,7 @@ double PID::update(double error,uint32_t dtime){
     return limiter(outsig, outlimMin, outlimMax);
 }
 
-void PID::setOutputLimit(double min, double max){
+void PID::setOutputLimit(float min, float max){
 
     if (isOutlimMin) {
         outlimMin = min;
@@ -84,7 +84,7 @@ void PID::setOutputLimit(double min, double max){
     }
 }
 
-void PID::setOutputLimit(bool setMin,bool setMax){
+void PID::setOutputLimEn(bool setMin,bool setMax){
     isOutlimMin = setMin;
     isOutlimMax = setMax;
 }
@@ -98,7 +98,7 @@ void PID::restart(){
     prev_time = micros();
 }
 
-double limiter(double in, double min, double max){
+float limiter(float in, float min, float max){
     if ( in > max) return max;
     else if ( in < min) return min;
     else return in;
