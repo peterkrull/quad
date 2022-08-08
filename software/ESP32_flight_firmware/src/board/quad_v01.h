@@ -24,7 +24,7 @@
     #define IO_8 27
     #define IO_9 14
 
-    #define pin_VBAT 2
+    #define VBAT_pins 2
 
     #define LSM6DSO true
     #define UBLOX_NEO_M8 true

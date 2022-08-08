@@ -6,7 +6,7 @@
 
 #define IMPORT_EASY_KIT true
 
-#define HOVER_THRUST 100
+#define HOVER_THRUST 0.365
 
 #define RADIAN_DEGREES true
 
@@ -17,12 +17,24 @@
 #define Z_IMU_ROTATION_REVERSE false
 #define XY_SWAP_IMU_AXES false
 
+#define SBUS_ENABLE true
+
 #define ESC_DSHOT true
 #define ESC_MULTISHOT false
 
 #if ESC_DSHOT || ESC_MULTISHOT
+    #define ALLOW_REVERSE_MOTOR_DIR true
+#else
     #define ALLOW_REVERSE_MOTOR_DIR false
 #endif
+
+// battery config
+
+#define MONITOR_BATTERIES true
+
+#define BATTERY_CELLS 4
+#define BATTERY_VMIN BATTERY_CELLS*3.0
+#define BATTERY_VMAX BATTERY_CELLS*4.2
 
 #define LOW_BATTERY_HOMING true
 #ifdef LOW_BATTERY_HOMING
@@ -34,14 +46,34 @@
     #define LOW_BATTERY_LAND_VOLTAGE 12.5
 #endif
 
+// FLIGHT CONFIGURATION
+
+/* 
+0 : not configured
+1 : helicopter
+2 : dual-propeller helicopter
+3 : tri-copter
+4 : quadcopter
+5 : ----
+6 : hexacopter
+7 : ----
+8 : heptacopter
+9 : ----
+10 :  
+*/
+
+#define configuration 4
+
 // Motor directions
-#define REVERSE_MOTOR_M1 true
-#define REVERSE_MOTOR_M2 true
-#define REVERSE_MOTOR_M3 false
-#define REVERSE_MOTOR_M4 false
+#if configuration == 4
+    #define REVERSE_MOTOR_M1 true
+    #define REVERSE_MOTOR_M2 true
+    #define REVERSE_MOTOR_M3 false
+    #define REVERSE_MOTOR_M4 false
+#endif
 
 // Serial communication
-#define BAUDRATE 115200
+#define BAUDRATE 500000
 #define ENABLE_SERIAL_PRINT true
 
 // Controller limits
@@ -49,11 +81,11 @@
 #define MAX_ROLL_PITCH_ANGLE 30
 #define MAX_YAW_RATE 360
 
-#define MAX_MOTOR_DIFF 500
+#define MAX_MOTOR_DIFF 0.2
 
 // Positioning limits
 
-#define MAX_
+#define MAX_DISTANCE_FROM_HOME 20
 
 // sanity check limits
 
@@ -119,3 +151,6 @@
 #define yawController yawControllerType(1,0,0)
 
 #endif
+
+// Warning : Be careful not to remove this check
+#include "config_sanity.h"

@@ -3802,7 +3802,7 @@
       (effects (font (size 1.27 1.27) (thickness 0.15)))
       (tstamp 8b022692-69b7-4bd6-bf38-57edecf356fa)
     )
-    (pad "1" thru_hole circle (at 0 0) (size 4.5 4.5) (drill 2.7) (layers *.Cu *.Mask) (tstamp a4541b62-7a39-4707-9c6f-80dce1be9cee))
+    (pad "1" thru_hole circle (at 0 0) (size 4.5 4.5) (drill 2.7) (layers *.Cu *.Mask) (tstamp 742f6656-c86d-41c0-937e-ef6ded3bd482))
   )
 
   (gr_line (start 120.65 129.54) (end 120.65 73.66) (layer "Edge.Cuts") (width 0.1) (tstamp 20cf01e9-dfc3-4dbd-bfe8-e7a519c6740e))

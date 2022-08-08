@@ -19,17 +19,6 @@ struct pryt{
   float yaw = 0;
 };
 
-struct motor {
-  uint16_t speed = 48;
-  DShotRMT dshot;
-  bool reversed;
-  bool rmt_init = false;
-  uint8_t rmt_channel;
-  uint8_t gpio_pin;
-  bool standby = true;
-  bool ready = false;
-};
-
 struct allMpu {
   bool dmpReady = false;  // set true if DMP init was successful
   uint8_t mpuIntStatus;   // holds actual interrupt status byte from MPU
