@@ -58,7 +58,7 @@ void setup(){
 }
 
 
-
+#define HAS_MAGNETOMETER false
 
 
 void loop(){
@@ -82,7 +82,7 @@ void loop(){
                 kalman.newAccel( imu.getAccel() , imu.getTimestamp() );
                 kalman.newGyro( imu.getGyro() , imu.getTimestamp() );
 
-                #ifdef HAS_MAGNETOMETER
+                #if HAS_MAGNETOMETER
                 kalman.newMag(imu.mag.getMag(),imu.mag.getTimestamp());
                 #endif
                     

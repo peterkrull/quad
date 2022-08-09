@@ -8,7 +8,7 @@ A [3D-printed part](/3dparts/droneframe_v1/pitch_bearing_pivot_wide.obj) was des
 
 ![](/images/inertia_torquer.png)
 
-For the test, a camera was mounted on a tripod recording in 4K with a fast shutter speed to prevent motion blur. Then, the drone was held at an angle to raise the roll of tape up high, and then let go. This is functionally a step in gravity and thus torque, that allows us to observe the change in angle over time. The video is processed in [Physlets tracker](https://physlets.org/tracker/) where two points are tracked on each opposing propeller. This gives us two sets of coordinates ([1](/tests/inertia_left_point.csv) and [2](/tests/inertia_right_point.csv)), where it is possible to determine the angle between them.
+For the test, a camera was mounted on a tripod recording in 4K with a fast shutter speed to prevent motion blur. Then, the drone was held at an angle to raise the roll of tape up high, and then let go. This is functionally a step in gravity and thus torque, that allows us to observe the change in angle over time. The video is processed in [Physlets tracker](https://physlets.org/tracker/) where two points are tracked on each opposing propeller. This gives us two sets of coordinates ([1](/tests/inertia_meas/pitch_inertia_left_point.csv) and [2](/tests/inertia_meas/pitch_inertia_right_point.csv)), where it is possible to determine the angle between them.
 
 ![](/images/inertia_test_setup.png)
 

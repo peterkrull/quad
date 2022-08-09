@@ -1,4 +1,4 @@
-data = readtable("../../tests/increasing_thrust_response.csv");
+data = readtable("../../tests/thrust_response/increasing_thrust_response.csv");
 
 % Correct the data
 data.Var1 = (data.Var1-5)*100;

@@ -1,5 +1,5 @@
-left_point = readtable("../../tests/inertia_left_point.csv");
-right_point = readtable("../../tests/inertia_right_point.csv");
+left_point = readtable("../../tests/inertia_meas/pitch_inertia_left_point.csv");
+right_point = readtable("../../tests/inertia_meas/pitch_inertia_right_point.csv");
 
 % Calculate angle and angular velocity
 angle = atan2(right_point.y-left_point.y,right_point.x-left_point.x);

@@ -2,24 +2,46 @@
 
 This git repository is a personal project of mine to make a well flying autonomous quad copter using cheap off-the-shelf components and good control theory and algorithms.
 
-## Goals of this project
+---
 
+## Goals of this project
+- [ ] Be able to hover in place and fly patterns using GPS and IMU data
+- [ ] Take off, fly a mission and land with little human interaction
+- [x] Make firmware modular for easy hardware and configuration changes
+
+### Flight-capable hardware
 - [x] Design and assemble the initial hardware capable of flight
-  - [ ] Produce a smaller PCB mainly with SMD components
+- [ ] Produce a smaller PCB mainly with SMD components
+
+### State estimation
+- [ ] Learn about and document the workings of a Kalman filter
+- [ ] Design a rudimentary kalman filter based on 6-DOF or 9-DOF IMUs
+- [ ] Estimate translational and rotational position, velocity, and acceleration 
+
+### Modelling of system dynamics
 - [x] Decide the models (transfer functions) for the motor thrust
 - [x] Decide equations of motion for pitch/roll with real-world values
-  - [ ] Calculate moments of inertia
+  - [x] Calculate moments of inertia
 - [ ] Decide equations of motion for yaw with real-world values
-- [ ] Accomplish fast and responsive pitch, roll, yaw-rate regulators
-- [ ] Estimate inertial and rotational position, velocity, and acceleration
-- [ ] Be able to hover in place and fly patterns using GPS and IMU data
-- [ ] Mission planning for doing missions defined by pre-determined routes
-- [ ] Land and take off with little human interaction
-- [ ] Refactor software to to build a more modular framework
+  - [ ] Calculate moment of inertia
+
+### Controller design
+- [ ] Accomplish fast and responsive pitch, roll and yaw regulators
+  - [x] Pitch/roll regulator
+  - [ ] Yaw regulator
+- [ ] Automatically calculate controller gains based on drone hardware
+
+### Flight planner
+- [ ] Develop architechture for flight planner (g-code like protocol?)
+- [ ] Receive flight data from quadcopter and send commands
+- [ ] Create GUI for easy interaction with drone
+  - [ ] Use world map for mission planning interface
+
+---
 
 ## Primary topics
 - [Design philosophy and 3D models](/README.md)
-- [Modelling of drone](/docs/modelling_of_drone.md)
+- [Modelling of drone](/docs/README.md)
 - [Autonomous drone regulation](docs/autonomous_drones.md)
 - [Design of main PCB](/hardware/README.md)
 
