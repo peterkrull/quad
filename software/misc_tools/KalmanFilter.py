@@ -1,6 +1,5 @@
-from tokenize import String
 from numpy import matrix,identity
-from numpy.linalg import inv, pinv
+from numpy.linalg import pinv
 
 class KalmanFilter:
        
