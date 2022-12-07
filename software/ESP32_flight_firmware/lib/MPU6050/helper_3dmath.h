@@ -29,6 +29,8 @@ THE SOFTWARE.
 ===============================================
 */
 
+#include "math.h"
+
 #ifndef _HELPER_3DMATH_H_
 #define _HELPER_3DMATH_H_
 
@@ -86,6 +88,89 @@ class Quaternion {
             Quaternion r(w, x, y, z);
             r.normalize();
             return r;
+        }
+};
+
+class VectorFloat {
+    public:
+        float x;
+        float y;
+        float z;
+
+        VectorFloat() {
+            x = 0;
+            y = 0;
+            z = 0;
+        }
+        
+        VectorFloat(float nx, float ny, float nz) {
+            x = nx;
+            y = ny;
+            z = nz;
+        }
+
+        VectorFloat subtract(VectorFloat num){
+            return VectorFloat {
+                x - num.x,
+                y - num.y,
+                z - num.z
+            };
+        }
+
+        VectorFloat add(VectorFloat num){
+            return VectorFloat {
+                x + num.x,
+                y + num.y,
+                z + num.z
+            };
+        }
+
+        float getMagnitude() {
+            return sqrt(x*x + y*y + z*z);
+        }
+
+        void normalize() {
+            float m = getMagnitude();
+            x /= m;
+            y /= m;
+            z /= m;
+        }
+        
+        VectorFloat getNormalized() {
+            VectorFloat r(x, y, z);
+            r.normalize();
+            return r;
+        }
+        
+        void rotate(Quaternion *q) {
+            Quaternion p(0, x, y, z);
+
+            // quaternion multiplication: q * p, stored back in p
+            p = q -> getProduct(p);
+
+            // quaternion multiplication: p * conj(q), stored back in p
+            p = p.getProduct(q -> getConjugate());
+
+            // p quaternion is now [0, x', y', z']
+            x = p.x;
+            y = p.y;
+            z = p.z;
+        }
+
+        VectorFloat getRotated(Quaternion *q) {
+            VectorFloat r(x, y, z);
+            r.rotate(q);
+            return r;
+        }
+
+        VectorFloat getFraction(float f) {
+            VectorFloat r(x, y, z);
+            return VectorFloat( r.x/f , r.y/f , r.z/f ); 
+        }
+
+        VectorFloat getProduct(float f) {
+            VectorFloat r(x, y, z);
+            return VectorFloat( r.x*f , r.y*f , r.z*f ); 
         }
 };
 
@@ -154,62 +239,10 @@ class VectorInt16 {
             r.rotate(q);
             return r;
         }
-};
 
-class VectorFloat {
-    public:
-        float x;
-        float y;
-        float z;
-
-        VectorFloat() {
-            x = 0;
-            y = 0;
-            z = 0;
-        }
-        
-        VectorFloat(float nx, float ny, float nz) {
-            x = nx;
-            y = ny;
-            z = nz;
-        }
-
-        float getMagnitude() {
-            return sqrt(x*x + y*y + z*z);
-        }
-
-        void normalize() {
-            float m = getMagnitude();
-            x /= m;
-            y /= m;
-            z /= m;
-        }
-        
-        VectorFloat getNormalized() {
-            VectorFloat r(x, y, z);
-            r.normalize();
-            return r;
-        }
-        
-        void rotate(Quaternion *q) {
-            Quaternion p(0, x, y, z);
-
-            // quaternion multiplication: q * p, stored back in p
-            p = q -> getProduct(p);
-
-            // quaternion multiplication: p * conj(q), stored back in p
-            p = p.getProduct(q -> getConjugate());
-
-            // p quaternion is now [0, x', y', z']
-            x = p.x;
-            y = p.y;
-            z = p.z;
-        }
-
-        VectorFloat getRotated(Quaternion *q) {
-            VectorFloat r(x, y, z);
-            r.rotate(q);
-            return r;
+        VectorFloat getFraction(float f) {
+            VectorInt16 r(x, y, z);
+            return VectorFloat( (float)r.x/f , (float)r.y/f , (float)r.z/f ); 
         }
 };
 
