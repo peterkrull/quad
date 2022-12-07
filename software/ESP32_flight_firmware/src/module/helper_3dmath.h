@@ -174,6 +174,32 @@ class VectorFloat {
         }
 };
 
+class MatrixFloat {
+    public:
+        float a11, a12, a13, a21, a22, a23, a31, a32, a33;
+
+        MatrixFloat() {
+            a11 = 0.0; a21 = 0.0; a31 = 0.0;
+            a12 = 0.0; a22 = 0.0; a32 = 0.0;
+            a13 = 0.0; a23 = 0.0; a33 = 0.0;
+        }
+
+        MatrixFloat(float a [3][3]) {
+            a11 = a[0][0]; a21 = a[1][0]; a31 = a[2][0];
+            a12 = a[0][1]; a22 = a[1][1]; a32 = a[2][1];
+            a13 = a[0][2]; a23 = a[1][2]; a33 = a[2][2];
+        }
+
+        // MatrixFloat transpose() {
+        //     return MatrixFloat{{
+        //         a11,a21,a31,
+        //         a12,a22,a32,
+        //         a13,a23,a33}};
+        // }
+
+    private:
+};
+
 class VectorInt16 {
     public:
         int16_t x;

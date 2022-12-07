@@ -2,6 +2,11 @@
 
 low_pass::low_pass(float tau){
     xTau = tau;
+    isInit = true;
+}
+
+bool low_pass::isInitialized() {
+    return isInit;
 }
 
 double low_pass::update(double input){
@@ -37,11 +42,25 @@ PID::PID(float Kp, float Ki, float Kd, float tau, bool ideal){
     } else {
         dlp = false;
     }
+
+    isInit = true;
+}
+
+bool PID::isInitialized() {
+    return isInit;
 }
 
 float PID::update(float error){
     float xtime = micros()/1e6;
     double outsig = update(error,xtime-prev_time);
+    prev_time = xtime;
+
+    return outsig;
+}
+
+float PID::update(float error,float ro_min, float ro_max){
+    float xtime = micros()/1e6;
+    double outsig = update(error,xtime-prev_time, ro_min, ro_max);
     prev_time = xtime;
 
     return outsig;
@@ -62,7 +81,7 @@ float PID::update(float error,float dtime){
     }
     
     if (xKi){ // integral
-        if (limiter(outsig, outlimMin, outlimMax) == outsig || !antiwindup){
+        if (!(constrain(outsig, outlimMin, outlimMax) == outsig && antiwindup)) {
             integral += (xKi*error*dtime);
             outsig += integral;
         }
@@ -70,23 +89,60 @@ float PID::update(float error,float dtime){
 
     prev_error = error;
 
-    return limiter(outsig, outlimMin, outlimMax);
+    // enforce output limit
+    if (outlimMin != (float) NULL && outlimMax != (float) NULL) {
+        return constrain(outsig, outlimMin, outlimMax);
+    } else { return outsig; }
+}
+
+// With handling of roll-over
+float PID::update(float error, float dtime, float ro_min, float ro_max){
+    
+    if ( error-prev_error < ro_min ){
+        prev_error -= ro_max-ro_min;
+        integral   -= ro_max-ro_min;
+    } else if ( error-prev_error > ro_max ) {
+        prev_error += ro_max-ro_min;
+        integral   += ro_max-ro_min;
+    }
+  
+    double outsig = 0;
+
+    if (xKp){ // proportional
+        outsig += xKp*error;
+    }
+
+    if (xKd) { // derivative
+        float delta = error-prev_error;
+        if (dlp) {delta = lp.update(delta);}
+        float derivative = (xKd*(delta))/dtime;
+        outsig += derivative;
+    }
+    
+    if (xKi){ // integral
+        if (!(constrain(outsig, outlimMin, outlimMax) == outsig && antiwindup)) {
+            integral += (xKi*error*dtime);
+            outsig += integral;
+        }
+    }
+
+    prev_error = error;
+
+    // enforce output limit
+    if (outlimMin != (float) NULL && outlimMax != (float) NULL) {
+        return constrain(outsig, outlimMin, outlimMax);
+    } else { return outsig; }
 }
 
 void PID::setOutputLimit(float min, float max){
 
-    if (isOutlimMin) {
+    if (min != (float) NULL) {
         outlimMin = min;
     }
 
-    if (isOutlimMax) {
+    if (max != (float) NULL) {
         outlimMax = max;
     }
-}
-
-void PID::setOutputLimEn(bool setMin,bool setMax){
-    isOutlimMin = setMin;
-    isOutlimMax = setMax;
 }
 
 void PID::setAntiwindup(bool set){
@@ -96,10 +152,4 @@ void PID::setAntiwindup(bool set){
 void PID::restart(){
     integral = 0;
     prev_time = micros();
-}
-
-float limiter(float in, float min, float max){
-    if ( in > max) return max;
-    else if ( in < min) return min;
-    else return in;
 }

@@ -23,6 +23,8 @@ class GPS {
                 prev_age = gps.time.value();
                 return false;
             }
+
+            gps.location.isUpdated();
         }
 
         bool initialize(HardwareSerial *serial,uint8_t rx,uint8_t tx) {

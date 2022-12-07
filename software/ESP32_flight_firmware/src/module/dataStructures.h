@@ -2,8 +2,10 @@
 #define dataStructures_h
 
 #include <Arduino.h>
-#include "DShotRMT.h"
-#include "MPU6050_6Axis_MotionApps612.h"
+#include "module/helper_3dmath.h"
+// #include "DShotRMT.h"
+// #include "MPU6050_6Axis_MotionApps612.h"
+// #include "actuator/dshot.h"
 
 struct quadcopter_motors{
   uint16_t M1 = 0;

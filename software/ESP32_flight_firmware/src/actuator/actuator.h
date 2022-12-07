@@ -4,7 +4,9 @@
 // Dshot protocol
 #if ESC_DSHOT
 
-class motor {
+#include "actuator/dshot.h"
+
+class xmotor {
 
     public:
         bool initialize() {}

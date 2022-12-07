@@ -1,10 +1,10 @@
+#pragma once
+
 #ifndef configuration_h
 #define configuration_h
 
 // Motherboard definition
 #define BOARD_QUAD_V00
-
-#define IMPORT_EASY_KIT true
 
 #define HOVER_THRUST 0.365
 
@@ -46,31 +46,10 @@
     #define LOW_BATTERY_LAND_VOLTAGE 12.5
 #endif
 
-// FLIGHT CONFIGURATION
-
-/* 
-0 : not configured
-1 : helicopter
-2 : dual-propeller helicopter
-3 : tri-copter
-4 : quadcopter
-5 : ----
-6 : hexacopter
-7 : ----
-8 : heptacopter
-9 : ----
-10 :  
-*/
-
-#define configuration 4
-
-// Motor directions
-#if configuration == 4
-    #define REVERSE_MOTOR_M1 true
-    #define REVERSE_MOTOR_M2 true
-    #define REVERSE_MOTOR_M3 false
-    #define REVERSE_MOTOR_M4 false
-#endif
+#define M1_REVERSE_DIR true
+#define M2_REVERSE_DIR true
+#define M3_REVERSE_DIR false
+#define M4_REVERSE_DIR false
 
 // Serial communication
 #define BAUDRATE 500000
@@ -111,10 +90,10 @@
 #endif
 
 // Innermost controllers
-#define USE_THRUST_CONTROLLER
-#define USE_PITCH_CONTROLLER
-#define USE_ROLL_CONTROLLER
-#define USE_YAW_CONTROLLER
+#define USE_THRUST_CONTROLLER true
+#define USE_PITCH_CONTROLLER true
+#define USE_ROLL_CONTROLLER true
+#define USE_YAW_CONTROLLER true
 
 // Velocity controllers
 #define USE_VELOCITY_CONTROL
@@ -124,33 +103,31 @@
 // controller configuration //
 // ------------------------ //
 
-#define usePitchController
+// Thrust
+#define CON_THRUST_INN_t PID
+#define CON_THRUST_INN_c CON_THRUST_INN_t(1,0,0)
+#define CON_THRUST_OUT_t PID
+#define CON_THRUST_OUT_c CON_THRUST_OUT_t(1,0,0)
 
-#define thrustInnerControllerType PID
-#define thrustInnerController thrustInnerControllerType(1,0,0)
+// Pitch
+#define CON_PITCH_INN_t PID
+#define CON_PITCH_INN_c CON_PITCH_INN_t(50,0.0,0.01,0,true)
+#define CON_PITCH_OUT_t PID
+#define CON_PITCH_OUT_c CON_PITCH_OUT_t(5,0,0.001,0,true)
 
-#define pitchInnerControllerType PID
-#define pitchInnerController pitchInnerControllerType(10,0.333,0.05,0,true)
+// Roll
+#define CON_ROLL_INN_t PID
+#define CON_ROLL_INN_c CON_ROLL_INN_t(50,0.0,0.01,0,true)
+#define CON_ROLL_OUT_t PID
+#define CON_ROLL_OUT_c CON_ROLL_OUT_t(5,0,0.001,0,true)
 
-#define rollInnerControllerType PID
-#define rollInnerController rollInnerControllerType(10,0.333,0.05,0,true)
+// Yaw
+#define CON_YAW_INN_t PID
+#define CON_YAW_INN_c CON_YAW_INN_t(30,0,0)
+#define CON_YAW_OUT_t PID
+#define CON_YAW_OUT_c CON_YAW_OUT_t(5,0,0)
 
-#define yawInnerControllerType PID
-#define yawInnerController yawInnerControllerType(1,0,0)
-
-#define thrustControllerType PID
-#define thrustController thrustControllerType(1,0,0)
-
-#define pitchControllerType PID
-#define pitchController pitchControllerType(12,0,0,0,true)
-
-#define rollControllerType PID
-#define rollController rollControllerType(12,0,0,0,true)
-
-#define yawControllerType PID
-#define yawController yawControllerType(1,0,0)
-
-#endif
+#endif // configuration_h
 
 // Warning : Be careful not to remove this check
 #include "config_sanity.h"

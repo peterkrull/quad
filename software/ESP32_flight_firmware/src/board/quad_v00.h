@@ -16,6 +16,11 @@
     #define M3_pin 14
     #define M4_pin 26
 
+    #define M1_RMT_CH 0
+    #define M2_RMT_CH 1
+    #define M3_RMT_CH 2
+    #define M4_RMT_CH 3
+
     #define GPS_RX 18
     #define GPS_TX 19
 

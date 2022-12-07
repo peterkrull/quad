@@ -2,20 +2,28 @@
 
 #include "../module/dataStructures.h"
 
+struct StateVector {
+    VectorFloat pos;
+    VectorFloat vel;
+    VectorFloat acc;
+} ;
+
+
+
+struct StateCovarianceMatrix {
+    float a [9][9];
+} ;
+
 class Kalman {
     public:
 
         // Provide new sensor readings
 
-        void newAccel(VectorFloat accels, unsigned timestamp) {}
-        void newGyro(VectorFloat gyro, uint32_t timestamp) {}
-        void newMag(VectorFloat mag, uint32_t timestamp) {}
+        void newAcc(VectorFloat acc, unsigned timestamp);
+        void newPos(VectorFloat pos, unsigned timestamp);
 
-        void newGpsLocation(float lat, float lng, uint32_t timestamp) {}
-        void newGpsAltitude(float alt, uint32_t timestamp) {}
-        void newGpsVelocity(float vel,uint32_t timestamp) {}
 
-        void newBaroAltitude(float baro,uint32_t timestamp) {}
+        void newBaro(float baro,uint32_t timestamp) {}
 
         // Provide quadcopter actuations
 
@@ -26,7 +34,8 @@ class Kalman {
 
         // Update contents of kalman filter
 
-        void update(){}
+        StateVector predict(float Td);
+        StateVector getStateVector() { return x_prime; }
 
         // Get estimated values
 
@@ -41,4 +50,10 @@ class Kalman {
         VectorFloat getAngularPositon () {return VectorFloat();}
 
     private:
+
+        VectorFloat sigma_acc, sigma_pos;
+
+        StateVector x_prime,x_pos;
+        StateCovarianceMatrix p_prime,p_pos;
+        bool newMeasurement;
 };

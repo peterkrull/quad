@@ -1,18 +1,14 @@
-#ifndef wifi_h
-#define wifi_h
+#pragma once
 
-#include "wifi_credentials.h"
-#include <Arduino.h>
+// #include "includes.h"
+// #include "wifi_credentials.h"
+// #include <AsyncUDP.h> // Some problems here
+// #include <WiFi.h>
 
-#ifdef ESP32
-class wifi {
-    public:
-        wifi(String SSID,String password);
-        void vKeepConnection(void *pvParameters);
-    private:
-        const char * xSSID;
-        const char * xPassword;
-};
-#endif
-
-#endif
+// #ifdef ESP32
+// class espwifi {
+//     public:
+//         espwifi(String SSID,String password);
+//         void vKeepConnection(void *pvParameters);
+// };
+// #endif

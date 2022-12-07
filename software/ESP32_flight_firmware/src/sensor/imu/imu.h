@@ -1,8 +1,6 @@
 #pragma once
 
 #include <Arduino.h>
-#include "../../module/helper_3dmath.h"
-#include "../../configuration.h"
 
 #if USE_MPU6050
 #include "MPU6050/mpu6050.h"
@@ -27,8 +25,18 @@ class IMU {
             #endif
             return gyro;
         }
+
+        VectorFloat getPry() {
+            #if RADIAN_DEGREES == false
+            return mpu.getPry().getProduct(180/PI);
+            #endif
+            return mpu.getPry();
+        }
+
+        Quaternion getQuaternion() { return mpu.getQuaternion(); }
         bool isUpdated() { return mpu.isUpdated(); }
         bool initialize() { return mpu.initialize(); }
+        bool statusGood() { return mpu.statusGood(); }
         unsigned long getTimestamp() {return mpu.getTimestamp(); }
 };
 #endif

@@ -1,7 +1,3 @@
-#include <Arduino.h>
-#include "power.h"
-#include "../includes.h"
-
 #ifdef pin_VBAT
 
 Battery::Battery(float minVoltage,float maxVoltage,int pin){

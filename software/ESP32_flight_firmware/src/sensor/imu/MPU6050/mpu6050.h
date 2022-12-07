@@ -1,3 +1,5 @@
+#include "../imu.h"
+
 #pragma once
 
 // Use 9-axis motion apps if 3D-magnetometer is available
@@ -40,11 +42,14 @@ class IMU_mpu6050 {
 
             VectorInt16 acc;
             VectorInt16 gyro;
+            VectorFloat grav;
             timestamp = millis();
 
-            mpu.dmpGetAccel(&acc, fifoBuffer);
-            mpu.dmpGetGyro(&gyro, fifoBuffer);
             mpu.dmpGetQuaternion(&quaternion, fifoBuffer);
+            mpu.dmpGetAccel(&acc, fifoBuffer);
+            mpu.dmpGetGravity(&grav, &quaternion);
+            mpu.dmpGetGyro(&gyro, fifoBuffer);
+            mpu.dmpGetYawPitchRoll(ypr,&quaternion,&grav);
 
             accelerations = acc.getFraction(1668.43);
             angular_rates = gyro.getFraction(939.65);
@@ -65,23 +70,22 @@ class IMU_mpu6050 {
         return angular_rates;
     }
 
+    VectorFloat getPry () { return VectorFloat{ypr[1],ypr[2],ypr[0]}; }
+
     Quaternion getQuaternion () {
         return quaternion;
     }
 
-    bool statusGood () {
-        if (devStatus == 0) {
-            return true;
-        } else { return false; }
-    }
+    bool statusGood () { return (devStatus == 0) ? true : false; }
 
     private:
     
     uint8_t devStatus;
     unsigned long timestamp;
-    
+    float ypr [3];
     Quaternion quaternion;
     VectorFloat angular_rates;
     VectorFloat accelerations;
     MPU6050 mpu;
+
 };
