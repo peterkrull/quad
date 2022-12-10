@@ -8,7 +8,7 @@ This git repository is a personal project of mine to develop an autonomous quad 
 - [Autonomous drone regulation](docs/autonomous_drones.md)
 - [Design of main PCB](/hardware/README.md)
 
-![](images/readme_frontimage.jpg)
+![](images/readme_frontimage_2.jpg)
 
 
 ### [*YouTube* : Demo of wireless data plotting and responsive controls](https://www.youtube.com/watch?v=jQ53PiUz8Us)
