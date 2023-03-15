@@ -23,7 +23,6 @@ use embassy_rp::{self as _, interrupt};
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::pubsub::{DynSubscriber, PubSubChannel, Publisher};
 use embassy_time::{with_timeout, Duration, Instant, Ticker, Timer};
-// use futures::StreamExt;
 
 use ahrs::{Ahrs, Madgwick};
 
@@ -32,7 +31,6 @@ use quad_dshot_pio::QuadDshotPio;
 use sbus::SBusPacketParser;
 
 mod functions;
-mod pid;
 mod sbus_cmd;
 
 use mag_calibrator_rs::MagCalibrator;
