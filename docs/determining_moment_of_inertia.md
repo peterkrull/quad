@@ -14,11 +14,11 @@ For the test, a camera was mounted on a tripod recording in 4K with a fast shutt
 
 Finally, data processing!
 
-A [matlab script](/software/misc_tools/roll_moment_inertia.m) has been developed to calculate the angle using $\texttt{atan2}$, and angular velocity based on the timstamps from the video, as well as determine the moment of inertia that best fits the following transfer function, where some dampening $B$ is expected:
+A [matlab script](/software/misc-tools/roll_moment_inertia.m) has been developed to calculate the angle using $\texttt{atan2}$, and angular velocity based on the timstamps from the video, as well as determine the moment of inertia that best fits the following transfer function, where some damping $B$ is expected:
 
 $$\omega(s) = \frac{Mgr}{Js} \approx \frac{Mgr}{Js + B}$$
 
-Both the moment of inertia, as well as the damepning observed in the test were determined, though the dampening is of limited use at this point.
+Both the moment of inertia, as well as the damping observed in the test were determined, though the dampening is of limited use at this point.
 $$J = 1.2\cdot 10^{-3}$$$$B = 0.4\cdot 10^{-3}$$
 
 ![](/images/roll_moment_of_inertia.jpg)
