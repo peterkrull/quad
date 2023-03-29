@@ -1,12 +1,13 @@
 #![feature(type_alias_impl_trait)]
 #![no_std]
 #![no_main]
-// #![allow(unused)]
+#![allow(unused)]
 
 use core::f32::consts::PI;
 
 use defmt::*;
 use defmt_rtt as _;
+use functions::mapf;
 use panic_probe as _;
 
 // Hopefully we can get rid of these
@@ -49,14 +50,15 @@ static CH_IMU_READINGS: PubSubChannel<CSMutex, ImuData, 1, 4, 1> = PubSubChannel
 static CH_MOTOR_INIT: PubSubChannel<CSMutex, bool, 1, 4, 1> = PubSubChannel::new();
 static CH_SBUS_CMD: PubSubChannel<CSMutex, SbusDur, 1, 4, 1> = PubSubChannel::new();
 
-fn motor_mixing(thrust: f32, pitch: f32, roll: f32, yaw: f32) -> U16x4 {
+fn motor_mixing(thrust: f32, pitch: f32, roll: f32, yaw: f32, min: f32, max: f32) -> U16x4 {
     (
-        (thrust + pitch + roll + yaw).clamp(70., 1250.) as u16,
-        (thrust - pitch - roll + yaw).clamp(70., 1250.) as u16,
-        (thrust + pitch - roll - yaw).clamp(70., 1250.) as u16,
-        (thrust - pitch + roll - yaw).clamp(70., 1250.) as u16,
+        (thrust + pitch + roll + yaw).clamp(min, max) as u16,
+        (thrust - pitch - roll + yaw).clamp(min, max) as u16,
+        (thrust + pitch - roll - yaw).clamp(min, max) as u16,
+        (thrust - pitch + roll - yaw).clamp(min, max) as u16,
     )
 }
+
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
@@ -164,9 +166,14 @@ async fn control_loop(
             let y = (yaw_integrator - yaw) * 10.;
             let yi = (y - data.gyr[2]) * 80.;
 
-            let t = functions::mapf(user_command.thrust, 0., 1., 80., 1000.);
+            // Set throttle behavior based on switch C
+            let t = match user_command.sw_c {
+                sbus_cmd::TwiSwitch::Idle => mapf(user_command.thrust, 0., 1., 80., 1000.),
+                sbus_cmd::TwiSwitch::Middle => mapf(user_command.thrust, 0., 1., 250., 1500.),
+                sbus_cmd::TwiSwitch::Active => mapf(user_command.thrust, 0., 1., 250., 2047.),
+            };
 
-            let command = motor_mixing(t, pi, ri, yi);
+            let command = motor_mixing(t, pi, ri, yi, 70., 2047.);
 
             motors.publish_immediate(command);
         }
@@ -200,18 +207,10 @@ async fn imu_reader(
         Ok(imu) => imu,
         Err(error) => {
             match error {
-                IcmError::BusError(_) => {
-                    error!("IMU_READER : IMU encountered a communication bus error")
-                }
-                IcmError::ImuSetupError => {
-                    error!("IMU_READER : IMU encountered an error during setup")
-                }
-                IcmError::MagSetupError => {
-                    error!("IMU_READER : IMU encountered an error during mag setup")
-                }
-            }
-            error!("IMU_READER : Was not able to initialize IMU");
-            return;
+                IcmError::BusError(_)   => error!("IMU_READER : IMU encountered a communication bus error"),
+                IcmError::ImuSetupError => error!("IMU_READER : IMU encountered an error during setup"),
+                IcmError::MagSetupError => error!("IMU_READER : IMU encountered an error during mag setup")
+            } return;
         }
     };
 
