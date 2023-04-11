@@ -25,7 +25,7 @@ mag-calibrator-rs = { git = "https://github.com/peterkrull/mag-calibrator-rs" }
 
 # Attitude and estimation
 nmea0183 = { version = "0.3.0", default-features = false }
-ahrs = { git = "https://github.com/jmagnuson/ahrs-rs", default-features = false }
+ahrs = { git = "https://github.com/peterkrull/ahrs-rs", default-features = false}
 
 # Linear algebra
 nalgebra = { version = "0.32", default-features = false, features = ["libm"] }
@@ -59,6 +59,8 @@ futures = { version = "0.3.26", default-features = false, features = [
     "cfg-target-has-atomic",
     "unstable",
 ] }
+
+embassy-embedded-hal = { git = "https://github.com/embassy-rs/embassy" }
 
 # cargo build/run
 [profile.dev]

@@ -25,7 +25,7 @@ use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::pubsub::{DynSubscriber, PubSubChannel, Publisher};
 use embassy_time::{with_timeout, Duration, Instant, Ticker, Timer};
 
-use ahrs::{Ahrs, Madgwick};
+use ahrs::{Madgwick,Ahrs as Ahrs};
 
 use icm20948_async::*;
 use quad_dshot_pio::QuadDshotPio;
@@ -35,6 +35,7 @@ mod functions;
 mod sbus_cmd;
 
 use mag_calibrator_rs::MagCalibrator;
+use sbus_cmd::SbusCmd;
 
 const SAMPLE_TIME: Duration = Duration::from_hz(250);
 
@@ -135,7 +136,8 @@ async fn control_loop(
     let mut imu_data = CH_IMU_READINGS.dyn_subscriber().unwrap();
 
     // Filter to obtain quaternion from acc, gyr and mag
-    let mut ahrs = Madgwick::new(SAMPLE_TIME.as_micros() as f32 / 1e6, 0.02);
+    // let mut ahrs1 = ahrs1::Madgwick::new(SAMPLE_TIME.as_micros() as f32 / 1e6, 0.02);
+    let mut ahrs2 = Madgwick::new(SAMPLE_TIME.as_micros() as f32 / 1e6, 0.02, 0.01);
 
     let mut yaw_integrator = 0.;
 
@@ -143,7 +145,8 @@ async fn control_loop(
     loop {
         // Received imu messages
         let data = imu_data.next_message_pure().await;
-        if let Ok(q) = ahrs.update_imu(&data.gyr, &data.acc) {
+
+        if let Ok(q) = ahrs2.update_imu(&data.gyr, &data.acc) {
             let (roll, pitch, yaw) = q.euler_angles();
 
             // Check that sbus command is sane
@@ -155,16 +158,16 @@ async fn control_loop(
             }
 
             // Controllers (all are proportional + cascaded)
-            let p = (user_command.pitch - pitch) * 7.;
-            let pi = (p - data.gyr[1]) * 60.;
+            let p = (user_command.pitch - pitch) * 6.;
+            let pi = (p - data.gyr[1]) * 40.;
 
-            let r = (user_command.roll - roll) * 7.;
-            let ri = (r - data.gyr[0]) * 60.;
+            let r = (user_command.roll - roll) * 6.;
+            let ri = (r - data.gyr[0]) * 40.;
 
             yaw_integrator -= user_command.yaw * SAMPLE_TIME.as_micros() as f32 / 1e6;
             yaw_integrator = functions::circular(yaw_integrator, -PI, PI);
-            let y = (yaw_integrator - yaw) * 10.;
-            let yi = (y - data.gyr[2]) * 80.;
+            let y = functions::circular(yaw_integrator - yaw, -PI, PI) * 8.;
+            let yi = (y - data.gyr[2]) * 60.;
 
             // Set throttle behavior based on switch C
             let t = match user_command.sw_c {
