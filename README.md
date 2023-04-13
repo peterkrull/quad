@@ -2,13 +2,11 @@
 
 This git repository is a personal project of mine to develop an open-source autonomous quad copter using cheap off-the-shelf components in conjunction with control theory and state estimation. As much as possible, any auxiliary tools and documentation I produce, will also be a part of the repository.
 
-## Rusty Quad
+## Getting Rusty
 
-The firmware is written in the Rust programming language. This is in contrast to most other flight controllers (and embedded devices in general) which use C or C++. The reason for choosing Rust is quite simple: it is a modern language. It can guarantee many things about the validity of memory at compile time, allows for writing high-level code, that runs at low-level speeds, and simply feels good to write; once you become friendly with the borrow checker.
+The [firmware](/software/rusty-quad) is written in the Rust programming language. This is in contrast to most flight controllers (and embedded devices in general) which use C or C++. The reason for choosing Rust is quite simple: it is a modern language. It can guarantee many things about the validity of memory at compile time, allows for writing high-level code, that runs at low-level speeds, and feels good to write; once you become friendly with the borrow checker.
 
-
-![](images/readme_frontimage_2.jpg)
-
+![](images/readme_frontimage_3.jpg)
 
 ### [*YouTube* : Demo of wireless data plotting and responsive controls](https://www.youtube.com/watch?v=jQ53PiUz8Us)
 
@@ -27,7 +25,7 @@ The firmware is written in the Rust programming language. This is in contrast to
 
 ## Related repositories
 
-During this project, some additional tools were developed, that reside in their own repositories, listed below.
+During this project, some additional tools were developed, that reside in their own repositories.
 
 ### Rust crates
 
@@ -36,7 +34,6 @@ During this project, some additional tools were developed, that reside in their 
 - [Magnetometer calibration algorithm](https://github.com/peterkrull/mag-calibrator-rs)
 - [Linear multi-sensor Kalman filter](https://github.com/peterkrull/kalman_filter_rust/)
 - [(Forked) no-std SBUS-parser](https://github.com/peterkrull/sbus)
-
 
 ---
 
