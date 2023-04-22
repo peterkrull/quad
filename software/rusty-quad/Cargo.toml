@@ -17,15 +17,18 @@ rp2040-hal = "0.8.0"
 pio-proc = "*"
 pio = "*"
 
-# self-developed
-sbus = { git = "https://github.com/peterkrull/sbus" }
+# self-developed (or forked)
 quad-dshot-pio = { git = "https://github.com/peterkrull/quad-dshot-pio" }
 icm20948-async = { git = "https://github.com/peterkrull/icm20948-async" }
 mag-calibrator-rs = { git = "https://github.com/peterkrull/mag-calibrator-rs" }
+pid-controller = {path = "../../../pid-controller"}
+
+# Forked
+sbus = { git = "https://github.com/peterkrull/sbus" }
+ahrs = { git = "https://github.com/peterkrull/ahrs-rs", default-features = false}
 
 # Attitude and estimation
 nmea0183 = { version = "0.3.0", default-features = false }
-ahrs = { git = "https://github.com/peterkrull/ahrs-rs", default-features = false}
 
 # Linear algebra
 nalgebra = { version = "0.32", default-features = false, features = ["libm"] }
@@ -39,6 +42,9 @@ embassy-sync = { git = "https://github.com/embassy-rs/embassy", features = [
 embassy-executor = { git = "https://github.com/embassy-rs/embassy", features = [
     "defmt",
     "integrated-timers",
+    "arch-cortex-m",
+    "executor-thread",
+    "nightly"
 ] }
 embassy-time = { git = "https://github.com/embassy-rs/embassy", features = [
     "defmt",
@@ -61,6 +67,10 @@ futures = { version = "0.3.26", default-features = false, features = [
 ] }
 
 embassy-embedded-hal = { git = "https://github.com/embassy-rs/embassy" }
+
+[build-dependencies]
+# Workaround https://github.com/embassy-rs/cyw43/issues/68
+regex = { version = "~1.7.3", default-features = false }
 
 # cargo build/run
 [profile.dev]
