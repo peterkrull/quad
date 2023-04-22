@@ -7,6 +7,7 @@ use core::f32::consts::PI;
 
 use defmt::*;
 use defmt_rtt as _;
+use embassy_sync::mutex::Mutex;
 use functions::mapf;
 use panic_probe as _;
 
@@ -25,7 +26,7 @@ use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::pubsub::{DynSubscriber, PubSubChannel, Publisher};
 use embassy_time::{with_timeout, Duration, Instant, Ticker, Timer};
 
-use ahrs::{Madgwick,Ahrs as Ahrs};
+use ahrs::{Madgwick,Ahrs};
 
 use icm20948_async::*;
 use quad_dshot_pio::QuadDshotPio;
@@ -34,10 +35,14 @@ use sbus::SBusPacketParser;
 mod functions;
 mod sbus_cmd;
 
-use mag_calibrator_rs::MagCalibrator;
-use sbus_cmd::SbusCmd;
+use pid_controller::Pid;
 
-const SAMPLE_TIME: Duration = Duration::from_hz(250);
+use mag_calibrator_rs::MagCalibrator;
+use sbus_cmd::{SbusCmd,TwiSwitch};
+
+mod state_master;
+
+const SAMPLE_TIME: Duration = Duration::from_hz(500);
 
 // Short-hand type definitions
 type U16x4 = (u16, u16, u16, u16);
@@ -60,6 +65,8 @@ fn motor_mixing(thrust: f32, pitch: f32, roll: f32, yaw: f32, min: f32, max: f32
     )
 }
 
+use embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice;
+use embedded_hal_async::i2c::I2c;
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
@@ -80,6 +87,10 @@ async fn main(spawner: Spawner) {
     let mut i2c_config = i2c::Config::default();
     i2c_config.frequency = 400_000;
     let i2c = i2c::I2c::new_async(p.I2C1, p.PIN_11, p.PIN_10, irq, i2c_config);
+
+    // let i2c_bus = Mutex::<CSMutex,_>::new(i2c);
+    // let i2c_imu = I2cDevice::new(&i2c_bus);
+    let i2c_imu = i2c;
 
     // Setup sbus compatible uart connection
     let mut sbus_uart_config = Config::default();
@@ -102,9 +113,10 @@ async fn main(spawner: Spawner) {
         (52, 0),
     );
 
+
     // Spawning of forever-tasks
 
-    spawner.must_spawn(imu_reader(i2c, CH_IMU_READINGS.publisher().unwrap()));
+    spawner.must_spawn(imu_reader(i2c_imu, CH_IMU_READINGS.publisher().unwrap()));
 
     spawner.must_spawn(sbus_parser(
         sbus_uart,
@@ -124,6 +136,7 @@ async fn main(spawner: Spawner) {
         CH_MOTOR_INIT.publisher().unwrap(),
         CH_SBUS_CMD.dyn_subscriber().unwrap(),
     ));
+
 }
 
 #[embassy_executor::task]
@@ -135,57 +148,93 @@ async fn control_loop(
     let mut user_command = sbus_cmd::SbusCmd::default();
     let mut imu_data = CH_IMU_READINGS.dyn_subscriber().unwrap();
 
+    let sample_time = SAMPLE_TIME.as_micros() as f32 / 1e6;
+
     // Filter to obtain quaternion from acc, gyr and mag
-    // let mut ahrs1 = ahrs1::Madgwick::new(SAMPLE_TIME.as_micros() as f32 / 1e6, 0.02);
-    let mut ahrs2 = Madgwick::new(SAMPLE_TIME.as_micros() as f32 / 1e6, 0.02, 0.01);
+    let mut ahrs = Madgwick::new(sample_time, 0.01, 0.001);
 
     let mut yaw_integrator = 0.;
+    let mut yaw_integrator = Pid::new( 0.0, 1.0, 0.0, false, sample_time ).set_circular(-PI, PI);
+
+    let mut pid_pitch_outer = Pid::new( 10., 0.1, 0., true, sample_time );
+    let mut pid_pitch_inner = Pid::new( 40., 1.0, 0.01, true, sample_time ).set_lp_filter(0.02);
+    let mut pid_roll_outer = Pid::new( 10., 0.1, 0., true, sample_time );
+    let mut pid_roll_inner = Pid::new( 30., 1.0, 0.01, true, sample_time ).set_lp_filter(0.02);
+    let mut pid_yaw_outer = Pid::new( 8., 0.001, 0., true, sample_time ).set_circular(-PI, PI);
+    let mut pid_yaw_inner = Pid::new( 60., 1.0, 0., true, sample_time );
 
     info!("CONTROL_LOOP : Entering main loop");
     loop {
         // Received imu messages
         let data = imu_data.next_message_pure().await;
 
-        if let Ok(q) = ahrs2.update_imu(&data.gyr, &data.acc) {
+        if let Ok(q) = ahrs.update_imu(&data.gyr, &data.acc) {
             let (roll, pitch, yaw) = q.euler_angles();
 
             // Check that sbus command is sane
             sbus_sanity(&mut user_command, &mut motors_init, &mut sbus_sub);
 
-            // Reset integrator if previously non-armed
-            if !user_command.sw_b.is_active() {
-                yaw_integrator = yaw;
+            // Reset integrators if previously non-armed
+            if !user_command.sw_b.is_active(){
+                pid_pitch_outer.reset_integral();   pid_pitch_inner.reset_integral();
+                pid_roll_outer.reset_integral();    pid_roll_inner.reset_integral();
+                pid_yaw_outer.reset_integral();     pid_yaw_inner.reset_integral();
+                yaw_integrator.reset_integral_to(yaw);
             }
 
-            // Controllers (all are proportional + cascaded)
-            let p = (user_command.pitch - pitch) * 6.;
-            let pi = (p - data.gyr[1]) * 40.;
+            // Controller selection
+            let (pitch_cmd,roll_cmd,yaw_cmd) = match user_command.sw_f {
 
-            let r = (user_command.roll - roll) * 6.;
-            let ri = (r - data.gyr[0]) * 40.;
+                // Horizon mode
+                TwiSwitch::Idle | sbus_cmd::TwiSwitch::Middle  => {
 
-            yaw_integrator -= user_command.yaw * SAMPLE_TIME.as_micros() as f32 / 1e6;
-            yaw_integrator = functions::circular(yaw_integrator, -PI, PI);
-            let y = functions::circular(yaw_integrator - yaw, -PI, PI) * 8.;
-            let yi = (y - data.gyr[2]) * 60.;
+                    let pitch_outer = pid_pitch_outer.update( user_command.pitch - pitch );
+                    let pitch = pid_pitch_inner.update( pitch_outer - data.gyr[1] );
 
-            // Set throttle behavior based on switch C
-            let t = match user_command.sw_c {
-                sbus_cmd::TwiSwitch::Idle => mapf(user_command.thrust, 0., 1., 80., 1000.),
-                sbus_cmd::TwiSwitch::Middle => mapf(user_command.thrust, 0., 1., 250., 1500.),
-                sbus_cmd::TwiSwitch::Active => mapf(user_command.thrust, 0., 1., 250., 2047.),
+                    let roll_outer = pid_roll_outer.update( user_command.roll - roll );
+                    let roll = pid_roll_inner.update( roll_outer - data.gyr[0] );
+
+                    let yaw_int = yaw_integrator.update( -user_command.yaw );
+                    let yaw_outer = pid_yaw_outer.update( yaw_int - yaw );
+                    let yaw = pid_yaw_inner.update( yaw_outer - data.gyr[2] );
+
+                    (pitch,roll,yaw)
+                }
+
+                // Acro mode
+                TwiSwitch::Active => {
+
+                    // Define controller gains (temporary)
+                    struct Gains { pitch : f32, roll : f32, yaw : f32 };
+                    let gains = Gains { pitch : 10.0f32, roll : 10.0f32, yaw : 10.0f32 };
+
+                    let pitch = pid_pitch_inner.update( user_command.pitch*gains.pitch - data.gyr[1] );
+                    let roll = pid_roll_inner.update( user_command.roll*gains.roll - data.gyr[0] );
+                    let yaw = pid_yaw_inner.update( -user_command.yaw*gains.yaw - data.gyr[2] );
+
+                    (pitch,roll,yaw)
+                }
             };
 
-            let command = motor_mixing(t, pi, ri, yi, 70., 2047.);
+            // Set throttle behavior based on switch C
+            let (thrust,motor_max) = match user_command.sw_c {
+                TwiSwitch::Idle => (mapf(user_command.thrust, 0., 1., 80., 1000.),1500.),
+                TwiSwitch::Middle => (mapf(user_command.thrust, 0., 1., 250., 1000.),2047.),
+                TwiSwitch::Active => (mapf(user_command.thrust, 0., 1., 250., 2047.),2047.),
+            };
+
+            let command = motor_mixing(thrust, pitch_cmd, roll_cmd, yaw_cmd, 70., motor_max);
 
             motors.publish_immediate(command);
         }
     }
 }
 
+
 #[embassy_executor::task]
 async fn imu_reader(
     i2c: i2c::I2c<'static, I2C1, i2c::Async>,
+    // i2c: I2cDevice<'static,CriticalSectionRawMutex, i2c::I2c<'static, I2C1, i2c::Async>>, Saved for shared bus support
     readings_ch: Publisher<'static, CSMutex, ImuData, 1, 4, 1>,
 ) {
     info!("IMU_READER : start");
@@ -315,42 +364,42 @@ async fn sbus_parser(
 
 #[embassy_executor::task]
 async fn motor_governor(
-    mut motors: QuadDshotPio<pac::PIO0>,
-    mut set_speeds: DynSubscriber<'static, U16x4>,
-    mut arm_motors: DynSubscriber<'static, bool>,
+    mut quad_pio_motors: QuadDshotPio<pac::PIO0>,
+    mut set_speeds_ch: DynSubscriber<'static, U16x4>,
+    mut arm_motors_ch: DynSubscriber<'static, bool>,
     timeout: Duration,
 ) {
     loop {
         // Wait for signal to arm motors
-        while !arm_motors.next_message_pure().await {}
+        while !arm_motors_ch.next_message_pure().await {}
 
         // Send minimum throttle for a few seconds to let
         // the ESCs know that they should be armed
         info!("MOTOR_GOVERNOR : Initializing motors");
         Timer::after(Duration::from_millis(500)).await;
         for _i in 0..50 {
-            motors.throttle_minimum();
+            quad_pio_motors.throttle_minimum();
             Timer::after(Duration::from_millis(50)).await;
         }
 
         // Set motor directions for the four motors
         info!("MOTOR_GOVERNOR : Setting motor directions");
         for _i in 0..10 {
-            motors.reverse((true, true, false, false));
+            quad_pio_motors.reverse((true, true, false, false));
             Timer::after(Duration::from_millis(50)).await;
         }
 
         info!("MOTOR_GOVERNOR : Entering main loop");
         loop {
             // Break if commanded to disarm
-            if Some(false) == arm_motors.try_next_message_pure() {
+            if Some(false) == arm_motors_ch.try_next_message_pure() {
                 warn!("MOTOR_GOVERNOR : Disarming motors -> commanded by parser");
                 break;
             }
 
             // Retrieve speeds from channel and transmit, break on timeout
-            if let Ok(speeds) = with_timeout(timeout, set_speeds.next_message_pure()).await {
-                motors.throttle_clamp(speeds);
+            if let Ok(speeds) = with_timeout(timeout, set_speeds_ch.next_message_pure()).await {
+                quad_pio_motors.throttle_clamp(speeds);
             } else {
                 warn!("MOTOR_GOVERNOR : Disarming motors -> message timeout");
                 break;
