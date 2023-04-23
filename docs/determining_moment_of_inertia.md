@@ -4,7 +4,7 @@ The moment of inertia of some object is not always easy to measure. This is espe
 
 The moment of inertia is determined by applying a constant torque around the axis, and measuring the change in velocity over time. A constant torque can be accomplished using a known mass $M$ hanging by gravity $g$ from a string wound around a cylinder with radius $r$ giving : $\tau_t = M \cdot g \cdot r$. The moment of inertia $J$ can then be found by fitting the measurement to the following model:
 
-A [3D-printed part](/3dparts/droneframe_v1/pitch_bearing_pivot_wide.obj) was designed specifically for this test, that is meant to replace the usual bearing holder for the pitch/roll test stand. This part has a diameter of $35 \text{ mm}$, so $r = (35/2)\cdot 10^{-3}$. Next, i used a roll of electrical tape, weighing in at $26 \text{ g}$, so $M = 26\cdot 10^{-3}$ and finally $g = 9.82$.
+A [3D-printed part](/3dparts/droneframe_v1/pitch_bearing_pivot_wide.obj) was designed specifically for this test, that is meant to replace the usual bearing holder for the pitch/roll test stand. This part has a diameter of $35 \text{ mm}$, so $r = (35/2)\cdot 10^{-3}$. Next, i used a roll of electrical tape, weighing $26 \text{ g}$, so $M = 26\cdot 10^{-3}$ and finally $g = 9.82$.
 
 ![](/images/inertia_torquer.png)
 
@@ -14,11 +14,12 @@ For the test, a camera was mounted on a tripod recording in 4K with a fast shutt
 
 Finally, data processing!
 
-A [matlab script](/software/misc-tools/roll_moment_inertia.m) has been developed to calculate the angle using $\texttt{atan2}$, and angular velocity based on the timstamps from the video, as well as determine the moment of inertia that best fits the following transfer function, where some damping $B$ is expected:
+A [Julia script](/tests/inertia_meas/roll_moment_inertia.jl) has been developed to calculate the angle using $\texttt{atan2}$, and angular velocity based on the timstamps from the video, as well as determine the moment of inertia that best fits the following transfer function, where some damping $B$ is expected:
 
 $$\omega(s) = \frac{Mgr}{Js} \approx \frac{Mgr}{Js + B}$$
 
 Both the moment of inertia, as well as the damping observed in the test were determined, though the dampening is of limited use at this point.
-$$J = 1.2\cdot 10^{-3}$$$$B = 0.4\cdot 10^{-3}$$
+$$J = 1.2\cdot 10^{-3}$$
+$$B = 0.4\cdot 10^{-3}$$
 
-![](/images/roll_moment_of_inertia.jpg)
+![](/images/roll_moment_of_inertia.svg)
