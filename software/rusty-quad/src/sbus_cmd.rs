@@ -1,7 +1,7 @@
 use crate::functions;
 use defmt::{self as _, Format};
 
-#[derive(Debug, Format, Clone, Default)]
+#[derive(Debug, Format, Clone, Copy, Default)]
 pub struct SbusCmd {
     pub thrust: f32,
     pub pitch: f32,
@@ -35,7 +35,7 @@ pub fn convert(packet: &sbus::SBusPacket) -> Option<SbusCmd> {
 }
 
 fn sbus_range(x: u16, tol: f32) -> f32 {
-    let y = functions::mapf(x as f32, 172., 1810., -1., 1.);
+    let y = functions::mapf(f32::from(x), 172., 1810., -1., 1.);
     if y > tol || y < -tol {
         y
     } else {
@@ -44,7 +44,7 @@ fn sbus_range(x: u16, tol: f32) -> f32 {
 }
 
 fn sbus_range_thrust(x: u16) -> f32 {
-    functions::mapf(x as f32, 172., 1810., 0., 1.)
+    functions::mapf( f32::from(x), 172., 1810., 0., 1.)
 }
 
 fn sbus_switch(x: u16) -> TwiSwitch {
@@ -57,24 +57,25 @@ fn sbus_switch(x: u16) -> TwiSwitch {
     }
 }
 
-#[derive(Debug, Format, PartialEq, Clone)]
+#[derive(Debug, Format, PartialEq, Clone, Copy)]
 pub enum TwiSwitch {
     Idle,
     Middle,
     Active,
 }
 
+#[allow(unused)]
 impl TwiSwitch {
-    pub fn is_active(&self) -> bool {
-        self == &TwiSwitch::Active
+    pub fn is_active(self) -> bool {
+        self == TwiSwitch::Active
     }
 
-    pub fn is_middle(&self) -> bool {
-        self == &TwiSwitch::Middle
+    pub fn is_middle(self) -> bool {
+        self == TwiSwitch::Middle
     }
 
-    pub fn is_idle(&self) -> bool {
-        self == &TwiSwitch::Idle
+    pub fn is_idle(self) -> bool {
+        self == TwiSwitch::Idle
     }
 }
 
