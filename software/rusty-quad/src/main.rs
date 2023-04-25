@@ -57,7 +57,7 @@ async fn main(spawner: embassy_executor::Spawner) {
     };
 
     // Configure and setup shared async I2C communication
-    let shared_i2c =  {
+    let shared_i2c = {
         use embassy_rp::interrupt;
         use embassy_rp::i2c::{Config,I2c};
         use embassy_sync::mutex::Mutex;
@@ -107,6 +107,7 @@ async fn main(spawner: embassy_executor::Spawner) {
         motors,
         CH_MOTOR_THROTTLE.dyn_subscriber().unwrap(),
         CH_MOTOR_INIT.dyn_subscriber().unwrap(),
+        (true,true,false,false),
         Duration::from_millis(100),
     ));
 
