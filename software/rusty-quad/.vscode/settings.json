@@ -1,5 +1,19 @@
 {
     "rust-analyzer.cargo.target": "thumbv6m-none-eabi",
     "rust-analyzer.checkOnSave.allTargets": false,
+    "rust-analyzer.procMacro.attributes.enable": false,
     "editor.formatOnSave": false,
+    "cSpell.words": [
+        "ahrs",
+        "baudrate",
+        "consts",
+        "defmt",
+        "Dshot",
+        "gpio",
+        "Madgwick",
+        "mapf",
+        "Mpss",
+        "Sbus",
+        "UART"
+    ]
 }
