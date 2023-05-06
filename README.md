@@ -37,6 +37,6 @@ During this project, some additional tools were developed, that reside in their 
 
 ---
 
-## Disclaimer
+## License
 
-I do not hold any responsibility for what another person does with the information or content provided in this repository. The repository is provided as-is with no guarantee against personal or material damage. Everything here should be considered experimental, so please be responsible, but please lean as much as possible while you are browsing around.
+This work is licensed under GPLv3.
