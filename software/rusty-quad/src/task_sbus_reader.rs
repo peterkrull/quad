@@ -12,7 +12,7 @@ type SbusDur = (Option<SbusCmd>, Duration);
 #[embassy_executor::task]
 pub async fn sbus_reader(
     mut rx: uart::UartRx<'static, UART1, Async>,
-    ch_sbus_cmd: Publisher<'static, CSMutex, SbusDur, 1, 4, 1>,
+    ch_sbus_cmd: Publisher<'static, CSMutex, SbusDur, 1, 1, 1>,
     timeout: Duration,
 ) {
     let mut parser = SBusPacketParser::new();

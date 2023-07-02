@@ -7,7 +7,6 @@ use embassy_sync::{pubsub::{Publisher, DynSubscriber}, blocking_mutex::raw::Crit
 use embassy_time::Duration;
 
 use ahrs::{Madgwick,Ahrs};
-use icm20948_async::Data6Dof;
 use pid_controller_rs::Pid;
 
 use crate::{sbus_cmd::{SbusCmd, TwiSwitch, self}, functions::mapf};
@@ -18,9 +17,9 @@ type CSMutex = CriticalSectionRawMutex;
 
 #[embassy_executor::task]
 pub async fn control_loop(
-    motors: Publisher<'static, CSMutex, U16x4, 1, 4, 1>,
-    mut motors_init: Publisher<'static, CSMutex, bool, 1, 4, 1>,
-    mut imu_data: DynSubscriber<'static, Data6Dof>,
+    motors: Publisher<'static, CSMutex, U16x4, 1, 1, 1>,
+    mut motors_init: Publisher<'static, CSMutex, bool, 1, 1, 1>,
+    mut imu_data: DynSubscriber<'static, crate::ImuData>,
     mut sbus_sub: DynSubscriber<'static, SbusDur>,
     sample_time : Duration,
 ) {
@@ -32,27 +31,35 @@ pub async fn control_loop(
     let mut user_command = SbusCmd::default();
 
     // Filter to obtain quaternion from acc, gyr and mag
-    let mut ahrs = Madgwick::new(sample_time_secs, 0.01, 0.001);
-
+    let mut ahrs = Madgwick::new(sample_time_secs, 0.05, 0.01);
 
     // Integrate yaw command to obtain yaw reference (circular PID with I-gain of 1)
-    let mut yaw_integrator = Pid::new( 0.0, 1.0, 0.0, false, super::IMU_SAMPLE_TIME_SECS ).set_circular(-PI, PI);
+    let mut yaw_integrator = Pid::new( 0.0, 1.0, 0.0, false, sample_time_secs ).set_circular(-PI, PI);
 
     // Setup controllers for pitch, roll and yaw, using a cascaded controller scheme.
-    let mut pid_pitch_outer = Pid::new( 10., 0.1, 0., true, super::IMU_SAMPLE_TIME_SECS );
-    let mut pid_pitch_inner = Pid::new( 40., 1.0, 0.01, true, super::IMU_SAMPLE_TIME_SECS ).set_lp_filter(0.02);
-    let mut pid_roll_outer = Pid::new( 10., 0.1, 0., true, super::IMU_SAMPLE_TIME_SECS );
-    let mut pid_roll_inner = Pid::new( 30., 1.0, 0.01, true, super::IMU_SAMPLE_TIME_SECS ).set_lp_filter(0.02);
-    let mut pid_yaw_outer = Pid::new( 8., 0.001, 0., true, super::IMU_SAMPLE_TIME_SECS ).set_circular(-PI, PI);
-    let mut pid_yaw_inner = Pid::new( 60., 1.0, 0., true, super::IMU_SAMPLE_TIME_SECS );
+    let mut pid_pitch_outer = Pid::new( 10., 0.1, 0., true, sample_time_secs );
+    let mut pid_pitch_inner = Pid::new( 40., 1.0, 0.01, true, sample_time_secs ).set_lp_filter(0.02);
+    let mut pid_roll_outer = Pid::new( 10., 0.1, 0., true, sample_time_secs );
+    let mut pid_roll_inner = Pid::new( 30., 1.0, 0.01, true, sample_time_secs ).set_lp_filter(0.02);
+    let mut pid_yaw_outer = Pid::new( 8., 0.001, 0., true, sample_time_secs ).set_circular(-PI, PI);
+    let mut pid_yaw_inner = Pid::new( 60., 1.0, 0., true, sample_time_secs );
 
     info!("CONTROL_LOOP : Entering main loop");
     loop {
         // Received imu messages
         let data = imu_data.next_message_pure().await;
 
-        if let Ok(q) = ahrs.update_imu(&data.gyr, &data.acc) {
+        #[cfg(not(feature = "mag"))]
+        let ahrs_output = ahrs.update_imu(&data.gyr, &data.acc);
+
+        #[cfg(feature = "mag")]
+        let ahrs_output = ahrs.update(&data.gyr, &data.acc, &data.mag);
+
+        if let Ok(q) = ahrs_output {
             let (roll, pitch, yaw) = q.euler_angles();
+
+            #[cfg(feature = "debug_print")]
+            println!("r:{} p:{} y:{}",roll,pitch,yaw);
 
             // Check that sbus command is sane
             sbus_sanity(&mut user_command, &mut motors_init, &mut sbus_sub);
@@ -64,6 +71,11 @@ pub async fn control_loop(
                 pid_yaw_outer.reset_integral();     pid_yaw_inner.reset_integral();
                 yaw_integrator.reset_integral_to(yaw);
             }
+
+            let flying = takeoff_detection();
+            pid_pitch_outer.enable_integral(flying);   pid_pitch_inner.enable_integral(flying);
+            pid_roll_outer.enable_integral(flying);    pid_roll_inner.enable_integral(flying);
+            pid_yaw_outer.enable_integral(flying);     pid_yaw_inner.enable_integral(flying);
 
             // Controller selection
             let (pitch_cmd,roll_cmd,yaw_cmd) = match user_command.sw_f {
@@ -125,7 +137,7 @@ fn motor_mixing(thrust: f32, pitch: f32, roll: f32, yaw: f32, min: f32, max: f32
 
 fn sbus_sanity(
     sbus_msg_out: &mut SbusCmd,
-    ch_motor_init: &mut Publisher<'static, CSMutex, bool, 1, 4, 1>,
+    ch_motor_init: &mut Publisher<'static, CSMutex, bool, 1, 1, 1>,
     ch_sbus_cmd: &mut DynSubscriber<'static, SbusDur>,
 ) {
     // If a new message is in the channel
@@ -144,4 +156,8 @@ fn sbus_sanity(
             ch_motor_init.publish_immediate(false);
         }
     }
+}
+
+fn takeoff_detection() -> bool {
+    true
 }

@@ -1,24 +1,29 @@
 [package]
 edition = "2021"
 name = "rusty-quad"
+authors = ["Peter Krull"]
 version = "0.1.0"
+
+[features]
+default = ["mag"]
+mag = []
+debug_print = []
 
 [dependencies]
 cortex-m = "0.7.7"
 cortex-m-rt = "0.7.3"
 embedded-hal = { version = "0.2.7", features = ["unproven"] }
 
-defmt = "=0.3.2"
-defmt-rtt = "0.3.2"
-panic-probe = { version = "0.3.0", features = ["print-defmt"] }
+defmt = "0.3.4"
+defmt-rtt = "0.4.0"
+panic-probe = { version = "0.3", features = ["print-defmt"] }
 
 # RP2040-specific
-rp2040-hal = "0.8.0"
-pio-proc = "*"
-pio = "*"
+pio-proc = "0.2"
+pio = "0.2"
 
 # self-developed (or forked)
-quad-dshot-pio = { git = "https://github.com/peterkrull/quad-dshot-pio", features = ["embassy-rp"]}
+quad-dshot-pio = { path = "../../../quad-dshot-pio", features = ["embassy-rp"]}
 icm20948-async = { git = "https://github.com/peterkrull/icm20948-async" }
 mag-calibrator-rs = { git = "https://github.com/peterkrull/mag-calibrator-rs" }
 pid-controller-rs = { git = "https://github.com/peterkrull/pid-controller-rs" }
@@ -35,7 +40,7 @@ nalgebra = { version = "0.32", default-features = false, features = ["libm"] }
 num-traits = { version = "0.2", default-features = false, features = ["libm"] }
 
 # Async & Embassy related
-embedded-hal-async = "0.2.0-alpha.0"
+embedded-hal-async = { git = "https://github.com/rust-embedded/embedded-hal" }
 embassy-sync = { git = "https://github.com/embassy-rs/embassy", features = [
     "defmt",
 ]}
@@ -56,7 +61,6 @@ embassy-rp = { git = "https://github.com/embassy-rs/embassy", features = [
     "nightly",
     "unstable-pac",
     "time-driver",
-    "pio",
     "critical-section-impl",
 ]}
 embassy-futures = { git = "https://github.com/embassy-rs/embassy" }
@@ -65,51 +69,10 @@ futures = { version = "0.3.26", default-features = false, features = [
     "cfg-target-has-atomic",
     "unstable",
 ] }
+embassy-embedded-hal = { git = "https://github.com/embassy-rs/embassy" }
 
 static_cell = "1.0.0"
 
-
-
-# embedded-hal-async = "0.2.0-alpha.0"
-# embassy-sync = { git = "https://github.com/embassy-rs/embassy", features = [
-#     "defmt",
-# ], rev = "e9ede443bca345f8651a7d8229b319432650dfce" }
-# embassy-executor = { git = "https://github.com/embassy-rs/embassy", features = [
-#     "defmt",
-#     "integrated-timers",
-#     "arch-cortex-m",
-#     "executor-thread",
-#     "nightly"
-# ], rev = "e9ede443bca345f8651a7d8229b319432650dfce" }
-# embassy-time = { git = "https://github.com/embassy-rs/embassy", features = [
-#     "defmt",
-#     "defmt-timestamp-uptime",
-# ], rev = "e9ede443bca345f8651a7d8229b319432650dfce" }
-# embassy-rp = { git = "https://github.com/embassy-rs/embassy", features = [
-#     "defmt",
-#     "unstable-traits",
-#     "nightly",
-#     "unstable-pac",
-#     "time-driver",
-#     "pio",
-#     "critical-section-impl",
-# ], rev = "e9ede443bca345f8651a7d8229b319432650dfce" }
-# embassy-futures = { git = "https://github.com/embassy-rs/embassy", rev = "e9ede443bca345f8651a7d8229b319432650dfce" }
-# futures = { version = "0.3.26", default-features = false, features = [
-#     "async-await",
-#     "cfg-target-has-atomic",
-#     "unstable",
-# ] }
-
-
-
-embassy-embedded-hal = { git = "https://github.com/embassy-rs/embassy" }
-
-[build-dependencies]
-# Workaround https://github.com/embassy-rs/cyw43/issues/68
-regex = { version = "~1.7.3", default-features = false }
-
-# cargo build/run
 [profile.dev]
 codegen-units = 1
 debug = 2
