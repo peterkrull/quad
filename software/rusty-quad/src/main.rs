@@ -1,5 +1,6 @@
 #![feature(type_changing_struct_update)]
 #![feature(type_alias_impl_trait)]
+#![feature(async_fn_in_trait)]
 #![no_std]
 #![no_main]
 
@@ -13,6 +14,8 @@ use embassy_time::Duration;
 
 mod functions;
 mod sbus_cmd;
+
+mod imu;
 
 const IMU_SAMPLE_TIME: Duration = Duration::from_hz(500);
 
