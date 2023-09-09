@@ -30,7 +30,7 @@ During this project, some additional tools were developed, that reside in their 
 ### Rust crates
 
 - [Async no-std ICM-20948 driver](https://github.com/peterkrull/icm20948-async)
-- [RP2040 PIO quad Dshot driver](https://github.com/peterkrull/quad-dshot-pio)
+- [Dshot driver for RP2040 PIO](https://github.com/peterkrull/dshot-pio)
 - [Magnetometer calibration algorithm](https://github.com/peterkrull/mag-calibrator-rs)
 - [Linear multi-sensor Kalman filter](https://github.com/peterkrull/kalman_filter_rust/)
 - [(Forked) no-std SBUS-parser](https://github.com/peterkrull/sbus)
