@@ -2,11 +2,12 @@
 edition = "2021"
 name = "rusty-quad"
 authors = ["Peter Krull"]
-version = "0.1.0"
+version = "0.1.2"
 
 [features]
-default = ["mag"]
+default = ["icm20948-async"]
 mag = []
+icm20948-async = []
 debug_print = []
 
 [dependencies]
@@ -23,7 +24,7 @@ pio-proc = "0.2"
 pio = "0.2"
 
 # self-developed (or forked)
-quad-dshot-pio = { path = "../../../quad-dshot-pio", features = ["embassy-rp"]}
+dshot-pio = { git = "https://github.com/peterkrull/dshot-pio", features = ["embassy-rp"]}
 icm20948-async = { git = "https://github.com/peterkrull/icm20948-async" }
 mag-calibrator-rs = { git = "https://github.com/peterkrull/mag-calibrator-rs" }
 pid-controller-rs = { git = "https://github.com/peterkrull/pid-controller-rs" }
@@ -40,7 +41,7 @@ nalgebra = { version = "0.32", default-features = false, features = ["libm"] }
 num-traits = { version = "0.2", default-features = false, features = ["libm"] }
 
 # Async & Embassy related
-embedded-hal-async = { git = "https://github.com/rust-embedded/embedded-hal" }
+embedded-hal-async = "1.0.0-rc.1"
 embassy-sync = { git = "https://github.com/embassy-rs/embassy", features = [
     "defmt",
 ]}
@@ -62,6 +63,7 @@ embassy-rp = { git = "https://github.com/embassy-rs/embassy", features = [
     "unstable-pac",
     "time-driver",
     "critical-section-impl",
+    # "intrinsics",
 ]}
 embassy-futures = { git = "https://github.com/embassy-rs/embassy" }
 futures = { version = "0.3.26", default-features = false, features = [

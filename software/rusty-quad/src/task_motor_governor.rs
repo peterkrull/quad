@@ -1,55 +1,97 @@
-use defmt::{info, warn};
-use embassy_rp::peripherals::{PIO0};
-use embassy_sync::pubsub::DynSubscriber;
+use defmt::{info, warn, Format};
+use embassy_rp::peripherals::PIO0;
 use embassy_time::{Duration, Timer, with_timeout};
-use quad_dshot_pio::{dshot_embassy_rp::QuadDshotPio, QuadDshotTrait};
+use dshot_pio::{dshot_embassy_rp::DshotPio, DshotPioTrait};
+use crate::signals;
 
-use crate::U16x4;
+static TASK_ID : &str = "MOTOR_GOVERNOR";
 
 /// Task to govern the arming, disarming and speed settings of the motors.
+/// Arming takes 3.5 seconds: 3.0 s to arm, 0.5 s to set direction
 #[embassy_executor::task]
 pub async fn motor_governor(
-    mut quad_pio_motors: QuadDshotPio<'static,PIO0>,
-    mut set_speeds_ch: DynSubscriber<'static, U16x4>,
-    mut arm_motors_ch: DynSubscriber<'static, bool>,
-    reverse_motor : (bool,bool,bool,bool),
-    timeout: Duration,
+    mut in_sg_motor_speed: signals::MotorSpeedSub,
+    mut in_sg_motor_dir: signals::MotorDirSub,
+    out_sg_motor_arm_state: signals::MotorStatePub,
+    mut out_quad_pio_motors: DshotPio<'static,4,PIO0>,
+    cfg_timeout_receive: Duration,
 ) {
+
+    let mut cfg_reverse_motor = in_sg_motor_dir.next_message_pure().await;
+
+    out_sg_motor_arm_state.publish_immediate(MotorState::Disarmed(DisarmReason::NotInitialized));
+
     loop {
         // Wait for signal to arm motors
-        while !arm_motors_ch.next_message_pure().await {}
+        while in_sg_motor_speed.next_message_pure().await.is_none() {}
 
-        // Send minimum throttle for a few seconds to let
-        // the ESCs know that they should be armed
-        info!("MOTOR_GOVERNOR : Initializing motors");
+        // Check if motor direction has been configured
+        if let Some(r) = in_sg_motor_dir.try_next_message_pure() {cfg_reverse_motor = r}
+
+        // Send minimum throttle for a few seconds to arm the ESCs
+        info!("{} : Initializing motors",TASK_ID);
         Timer::after(Duration::from_millis(500)).await;
         for _i in 0..50 {
-            quad_pio_motors.throttle_minimum();
+            out_quad_pio_motors.throttle_minimum();
             Timer::after(Duration::from_millis(50)).await;
         }
 
         // Set motor directions for the four motors
-        info!("MOTOR_GOVERNOR : Setting motor directions");
+        info!("{} : Setting motor directions",TASK_ID);
         for _i in 0..10 {
-            quad_pio_motors.reverse(reverse_motor);
+            out_quad_pio_motors.reverse(cfg_reverse_motor.into());
             Timer::after(Duration::from_millis(50)).await;
         }
 
-        info!("MOTOR_GOVERNOR : Entering main loop");
-        loop {
-            // Break if commanded to disarm
-            if Some(false) == arm_motors_ch.try_next_message_pure() {
-                warn!("MOTOR_GOVERNOR : Disarming motors -> commanded by parser");
-                break;
-            }
+        // Set motors armed signal
+        out_sg_motor_arm_state.publish_immediate(MotorState::Armed(ArmedState::Idle));
 
-            // Retrieve speeds from channel and transmit, break on timeout
-            if let Ok(speeds) = with_timeout(timeout, set_speeds_ch.next_message_pure()).await {
-                quad_pio_motors.throttle_clamp(speeds);
-            } else {
-                warn!("MOTOR_GOVERNOR : Disarming motors -> message timeout");
-                break;
+        info!("{} : Entering main loop",TASK_ID);
+        loop {
+
+            match with_timeout(cfg_timeout_receive, in_sg_motor_speed.next_message_pure()).await {
+
+                // Motor speed message received correctly
+                Ok(Some(speeds)) => {
+                    out_quad_pio_motors.throttle_clamp(speeds.into());
+                    out_sg_motor_arm_state.publish_immediate(MotorState::Armed(ArmedState::Running(speeds)));
+                },
+
+                // Channel commanded motors to disarm
+                Ok(None) =>  {
+                    warn!("{} : Disarming motors -> commanded",TASK_ID);
+                    out_quad_pio_motors.throttle_minimum();
+                    out_sg_motor_arm_state.publish_immediate(MotorState::Disarmed(DisarmReason::Commanded));
+                    break
+                },
+
+                // Automatic disarm due to message timeout
+                Err(_) =>  {
+                    warn!("{} : Disarming motors -> timeout",TASK_ID);
+                    out_quad_pio_motors.throttle_minimum();
+                    out_sg_motor_arm_state.publish_immediate(MotorState::Disarmed(DisarmReason::Timeout));
+                    break
+                }
             }
         }
     }
+}
+
+#[derive(Clone,Copy,Format,PartialEq)]
+pub enum MotorState {
+    Disarmed(DisarmReason),
+    Armed(ArmedState)
+}
+
+#[derive(Clone,Copy,Format,PartialEq)]
+pub enum ArmedState {
+    Running((u16,u16,u16,u16)),
+    Idle
+}
+
+#[derive(Clone,Copy,Format,PartialEq)]
+pub enum DisarmReason{
+    NotInitialized,
+    Commanded,
+    Timeout
 }

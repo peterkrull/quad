@@ -1,16 +1,16 @@
 use crate::functions;
 use defmt::{self as _, Format};
 
-#[derive(Debug, Format, Clone, Copy, Default)]
+#[derive(Debug, Format, Clone, Copy, Default, PartialEq)]
 pub struct SbusCmd {
     pub thrust: f32,
     pub pitch: f32,
     pub roll: f32,
     pub yaw: f32,
-    pub sw_e: TwiSwitch,
-    pub sw_b: TwiSwitch,
-    pub sw_c: TwiSwitch,
-    pub sw_f: TwiSwitch,
+    pub sw_e: TriSwitch,
+    pub sw_b: TriSwitch,
+    pub sw_c: TriSwitch,
+    pub sw_f: TriSwitch,
 }
 
 /// Repackages the SBUS packet into a more usable format.
@@ -47,39 +47,39 @@ fn sbus_range_thrust(x: u16) -> f32 {
     functions::mapf( f32::from(x), 172., 1810., 0., 1.)
 }
 
-fn sbus_switch(x: u16) -> TwiSwitch {
+fn sbus_switch(x: u16) -> TriSwitch {
     if x < 736 {
-        TwiSwitch::Idle
+        TriSwitch::Idle
     } else if x > 1248 {
-        TwiSwitch::Active
+        TriSwitch::Active
     } else {
-        TwiSwitch::Middle
+        TriSwitch::Middle
     }
 }
 
 #[derive(Debug, Format, PartialEq, Clone, Copy)]
-pub enum TwiSwitch {
+pub enum TriSwitch {
     Idle,
     Middle,
     Active,
 }
 
 #[allow(unused)]
-impl TwiSwitch {
+impl TriSwitch {
     pub fn is_active(self) -> bool {
-        self == TwiSwitch::Active
+        self == TriSwitch::Active
     }
 
     pub fn is_middle(self) -> bool {
-        self == TwiSwitch::Middle
+        self == TriSwitch::Middle
     }
 
     pub fn is_idle(self) -> bool {
-        self == TwiSwitch::Idle
+        self == TriSwitch::Idle
     }
 }
 
-impl Default for TwiSwitch {
+impl Default for TriSwitch {
     fn default() -> Self {
         Self::Idle
     }

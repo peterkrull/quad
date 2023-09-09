@@ -3,13 +3,14 @@ use defmt::*;
 use embassy_time::{Ticker, Duration};
 use embassy_rp::{peripherals::I2C1, i2c};
 use embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice;
-use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex as CSMutex, pubsub::Publisher};
+use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex as CSMutex;
 use icm20948_async::{AccelerometerRange, AccelerometerDlp, AccelerometerUnit, GyroscopeRange, GyroscopeDlp, GyroscopeUnit, Icm20948, IcmError};
+use crate::signals;
 
 #[embassy_executor::task]
 pub async fn imu_reader(
     i2c: I2cDevice<'static,CSMutex, i2c::I2c<'static, I2C1, i2c::Async>>,
-    readings_ch: Publisher<'static, CSMutex, crate::ImuData, 1, 1, 1>,
+    out_imu_reading: signals::ImuReadingPub,
     sample_time : Duration
 ) {
     info!("IMU_READER : start");
@@ -33,7 +34,7 @@ pub async fn imu_reader(
     #[cfg(feature = "mag")]
     let imu_result = imu_configured.initialize_9dof().await;
 
-    // Unpack IMU result safely and print error if necessary
+    // Unpack IMU result safely and print error if necessary    
     let mut imu = match imu_result {
         Ok(imu) => imu,
         Err(error) => {
@@ -84,7 +85,7 @@ pub async fn imu_reader(
     info!("IMU_READER : Entering main loop");
     loop {
         if let Ok(imu_data) = imu.read_all().await {
-            readings_ch.publish_immediate(imu_data);
+            out_imu_reading.publish_immediate(imu_data);
         }
         ticker.next().await;
     }
