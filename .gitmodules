@@ -1,3 +1,6 @@
 [submodule "hardware/kicad_libs/kicad-libraries"]
 	path = hardware/kicad_libs/kicad-libraries
 	url = https://github.com/espressif/kicad-libraries
+[submodule "holsatus-flight"]
+	path = holsatus-flight
+	url = https://github.com/holsatus/holsatus-flight
