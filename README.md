@@ -1,3 +1,8 @@
+> [!TIP]
+> The Rust-based flight control firmware is maintained in its own repository - [**Holsatus Flight**](https://github.com/holsatus/holsatus-flight)
+
+---
+
 # Project quad
 
 This git repository is a personal project of mine to develop an open-source autonomous quad copter using cheap off-the-shelf components in conjunction with control theory and state estimation. As much as possible, any auxiliary tools and documentation I produce, will also be a part of the repository.
